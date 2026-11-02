@@ -52,8 +52,8 @@ class Window(Adw.ApplicationWindow):
         toolbar.set_content(scroll)
         clamp = Adw.Clamp(maximum_size=760)
         scroll.set_child(clamp)
-        body = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16,
-                       margin_start=24, margin_end=24, margin_top=22, margin_bottom=22)
+        body = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12,
+                       margin_start=24, margin_end=24, margin_top=18, margin_bottom=18)
         clamp.set_child(body)
         body.append(label("Audio in. Video out.", "title-1"))
         body.append(label("Choose your sound and its visual. Export a ready-to-play MP4.", "dim-label"))
@@ -74,7 +74,7 @@ class Window(Adw.ApplicationWindow):
         body.append(choices)
 
         self.visual = Gtk.Stack(vhomogeneous=True)
-        self.visual.set_size_request(-1, 190)
+        self.visual.set_size_request(-1, 150)
         self.visual.add_css_class("card")
         self.empty_image = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10, valign=Gtk.Align.CENTER)
         self.empty_image.append(Gtk.Image(icon_name="image-x-generic-symbolic", pixel_size=48))
@@ -102,6 +102,7 @@ class Window(Adw.ApplicationWindow):
         settings.append(self.output_row)
         resolution_row = Adw.ActionRow(title="Resolution", subtitle="16:9 · 30 frames per second", use_markup=False)
         self.resolution = Gtk.DropDown.new_from_strings(["1080p", "720p"])
+        self.resolution.connect("notify::selected", lambda *_: self.selection_changed())
         self.resolution.set_valign(Gtk.Align.CENTER)
         self.resolution.set_tooltip_text("Output resolution")
         resolution_row.add_suffix(self.resolution)
@@ -149,7 +150,17 @@ class Window(Adw.ApplicationWindow):
     def mode_changed(self, widget, mode):
         if widget.get_active():
             self.mode = mode
-            self.refresh()
+            self.selection_changed()
+
+    def selection_changed(self):
+        if self.controller.busy or self.closing:
+            return
+        self.controller.result, self.controller.error = None, ""
+        self.controller.fraction = 0.0
+        self.controller.status = ("Choose an audio file to begin." if self.audio is None else
+            "Choose a PNG or JPEG for your still image." if self.mode == "still" and self.image is None else
+            "Ready to create MP4.")
+        self.refresh()
 
     def refresh(self):
         busy = self.controller.busy or self.closing
@@ -227,7 +238,7 @@ class Window(Adw.ApplicationWindow):
             candidate = path.with_name(f"{path.stem}-{index}.mp4")
             index += 1
         self.output = candidate
-        self.refresh()
+        self.selection_changed()
 
     def choose_image(self):
         self.choose("Choose image", IMAGE_FORMATS, self.set_image)
@@ -235,14 +246,14 @@ class Window(Adw.ApplicationWindow):
     def set_image(self, path):
         self.image = path
         self.cover.set_filename(str(path))
-        self.refresh()
+        self.selection_changed()
 
     def choose_output(self):
         self.choose("Save a new MP4", (".mp4",), self.set_output, save=True)
 
     def set_output(self, path):
         self.output = path if path.suffix.lower() == ".mp4" else Path(str(path) + ".mp4")
-        self.refresh()
+        self.selection_changed()
 
     def start(self):
         if self.controller.busy or self.closing or not self.audio or not self.output:

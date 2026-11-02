@@ -5,6 +5,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import traceback
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from a2v.gui import Adw, Application, GLib, Window
@@ -16,7 +17,10 @@ def main():
     parser.add_argument("--screenshots", type=Path)
     args = parser.parse_args()
     errors = []
-    sys.excepthook = lambda kind, value, tb: errors.append(value)
+    def exception_hook(kind, value, tb):
+        traceback.print_exception(kind, value, tb)
+        errors.append(value)
+    sys.excepthook = exception_hook
     context = GLib.MainContext.default()
 
     def spin(seconds=.1):
@@ -46,6 +50,7 @@ def main():
         win.set_audio(audio(root / "Studio session.wav", .6))
         win.set_image(png(root / "Cover.png"))
         assert win.export_button.get_sensitive()
+        assert win.status.get_text() == "Ready to create MP4."
         assert win.visual.get_visible_child_name() == "cover"
         screenshot("gtk-still.png")
 
@@ -77,6 +82,7 @@ def main():
         win.chooser_cancel.reset()
 
         win.still_button.set_active(True)
+        assert not win.open_button.get_visible()
         win.set_output(root / "still.mp4")
         win.start()
         deadline = time.monotonic() + 30
