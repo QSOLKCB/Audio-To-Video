@@ -1,0 +1,4 @@
+#!/bin/sh
+set -eu
+APP_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+exec /usr/bin/python3 "$APP_ROOT/a2v/launcher.py" "$@"
