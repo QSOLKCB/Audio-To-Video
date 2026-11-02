@@ -14,6 +14,8 @@ both 16:9 at 30 fps. The whole audio file is used; video ends on the next comple
 frame, at most 1/30 second later. No account, uploads, advertising, model downloads,
 cloud service, browser runtime, pip environment, Node, or container is required.
 
+[Download the tested Linux preview](packages/README.md) · [GTK screenshot](docs/gtk-preview.png)
+
 ## Run on Ubuntu 24.04 or newer
 
 From a checkout:
