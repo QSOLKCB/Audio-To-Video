@@ -10,7 +10,8 @@ Two modes:
   **Quantum Galaxy** and **GLUBALL Knot**.
 
 Add an optional **Name – Track** title at the top in either mode.
-[Visual styles and GALAXY/GLUBALL references](docs/visualizers.md).
+[Visual styles and GALAXY/GLUBALL references](docs/visualizers.md) ·
+[OPT optimizations and measured results](docs/optimization.md).
 
 MP3, M4A and WAV in. H.264 video + AAC audio in an MP4 out. Choose 1080p or 720p,
 both 16:9 at 30 fps. The whole audio file is used; video ends on the next complete
@@ -18,6 +19,8 @@ frame, at most 1/30 second later. No account, uploads, advertising, model downlo
 cloud service, browser runtime, pip environment, Node, or container is required.
 
 [Download the tested Linux preview](packages/README.md) · [GTK screenshot](docs/gtk-preview.png)
+
+![Quantum Galaxy and GLUBALL Knot, captured from verified MP4 exports](docs/visualizer-preview.png)
 
 ## Run on Ubuntu 24.04 or newer
 

@@ -3,7 +3,7 @@ from functools import lru_cache
 from pathlib import Path
 import unicodedata
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageChops, ImageDraw, ImageFont
 
 from .process import RenderError
 
@@ -21,7 +21,6 @@ def normalize_title(text):
     return text
 
 
-@lru_cache(maxsize=8)
 def title_image(text, width):
     """Native-resolution, centred title, fitted by measured glyph bounds."""
     scale = width // 640
@@ -40,6 +39,21 @@ def title_image(text, width):
         raise RenderError('Title is too wide to fit legibly. Please shorten it.')
     draw.text(((width - right + left) // 2 - left,
                (HEADER * scale - bottom + top) // 2 - top), text, font=font, fill=(244, 246, 255))
+    # A very narrow glyph ("i", ".") can fall between verification samples.
+    # Keep it centred within half a sample spacing while aligning one bright
+    # glyph pixel to the sampling grid. Do not silently accept invisible text.
+    if max(image.getchannel('G').getextrema()) <= 180:
+        raise RenderError('Title contains no visible text. Clear it for no title.')
+    if max(image.resize((160, HEADER // 4), Image.Resampling.NEAREST).getchannel('G').getextrema()) <= 180:
+        step = width // 160
+        offsets = sorted(((x,y) for x in range(-step//2,step//2+1)
+                          for y in range(-step//2,step//2+1)), key=lambda p: (abs(p[0])+abs(p[1]),p))
+        for x,y in offsets:
+            shifted = ImageChops.offset(image,x,y)
+            if max(shifted.resize((160, HEADER // 4), Image.Resampling.NEAREST).getchannel('G').getextrema()) > 180:
+                image = shifted
+                draw = ImageDraw.Draw(image)
+                break
     draw.line((32 * scale, HEADER * scale - 1, width - 32 * scale, HEADER * scale - 1),
               fill=(42, 54, 70), width=scale)
     return image
@@ -53,10 +67,17 @@ def prepare_title(text, width, work):
     return path
 
 
-def check_title(actual, text, width):
+@lru_cache(maxsize=1)
+def title_reference(text, width):
+    """One immutable verification reference for the one active export."""
     expected = title_image(text, width).resize((160, HEADER // 4), Image.Resampling.NEAREST).tobytes()
+    bright = tuple(i for i in range(0, len(expected), 3) if min(expected[i:i+3]) > 180)
+    return expected, bright
+
+
+def check_title(actual, text, width):
+    expected, bright = title_reference(text, width)
     actual = actual[:len(expected)]
-    bright = [i for i in range(0, len(expected), 3) if min(expected[i:i+3]) > 180]
     if (len(actual) != len(expected) or not bright
             or sum(min(actual[i:i+3]) > 140 for i in bright) < len(bright) * .85
             or sum(abs(a-b) for a,b in zip(actual, expected)) / len(expected) > 8):

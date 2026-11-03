@@ -1,0 +1,66 @@
+{
+  "environment": {
+    "python": "3.12.3 (main, Jul 15 2026, 23:46:41) [GCC 13.3.0]",
+    "pillow": "10.2.0",
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.39",
+    "cpu": "AMD EPYC 9V74 80-Core Processor",
+    "ffmpeg": "ffmpeg version 6.1.1-3ubuntu5 Copyright (c) 2000-2023 the FFmpeg developers"
+  },
+  "baseline_viewport": "same final 4/5 scale in both paths, common layout correction excluded from OPT credit",
+  "effective_reference_visualizer_sha256": "3d5a97710e9c67f26e95c2f6463ed6c553052101c24e4aae64d7638b86f9d90c",
+  "source_hashes": {
+    "reference": {
+      "visualizer.py": "3d5a97710e9c67f26e95c2f6463ed6c553052101c24e4aae64d7638b86f9d90c",
+      "title.py": "ee7f2562ca520ac09f86bf2a75f6e1390f599bd505413589a56004e31207802a"
+    },
+    "optimized": {
+      "visualizer.py": "902c35bb6c11ea68c6a5e94815e2a38f4eefbe5e88f66c25388bb6b15baa6b64",
+      "title.py": "cf3c02bbc5ae78c15856219535acdadbb697725f8fb4d918b38bd53c9637db50"
+    }
+  },
+  "method": "3 alternating pairs per style, 2.017 s stereo fixture, 720p, title; includes PCM decode, cold caches, render, encode, every-frame verification and atomic publication",
+  "styles": {
+    "qutrit-galaxy": {
+      "seconds": {
+        "reference": [
+          3.9077903809957206,
+          3.8863762929977383,
+          3.692258747003507
+        ],
+        "optimized": [
+          2.962627380999038,
+          3.045664838005905,
+          3.011638944997685
+        ]
+      },
+      "median_seconds": {
+        "reference": 3.8863762929977383,
+        "optimized": 3.011638944997685
+      },
+      "reduction_percent": 22.50778828535228,
+      "mp4_sha256": "658436c9d4f7d6925b6cc865d098eb71f5abee0df15b1e1491f018deb5ce05e7",
+      "exact_mp4_parity": true
+    },
+    "gluball-knot": {
+      "seconds": {
+        "reference": [
+          5.919008673998178,
+          6.054215558004216,
+          6.113589010987198
+        ],
+        "optimized": [
+          4.261716970009729,
+          4.159722423995845,
+          4.23293873599323
+        ]
+      },
+      "median_seconds": {
+        "reference": 6.054215558004216,
+        "optimized": 4.23293873599323
+      },
+      "reduction_percent": 30.082787845290625,
+      "mp4_sha256": "5de9dbbd907e50ddda2d727cd9c00c28488b54f361fcc9c381068e1498c116bc",
+      "exact_mp4_parity": true
+    }
+  }
+}

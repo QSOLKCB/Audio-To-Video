@@ -138,6 +138,18 @@ def galaxy(pcm, index):
     return image
 
 
+@lru_cache(maxsize=1)
+def knot_basis():
+    """One immutable fixed geometry table, independent of audio and frame index."""
+    return tuple((t, cosine(3*t), sine(3*t), cosine(2*t), sine(2*t))
+                 for t in (i*TURN//512 for i in range(513)))
+
+
+@lru_cache(maxsize=3)
+def ribbon_colors(color):
+    return tuple(tuple(min(255,c*brightness//190) for c in color) for brightness in range(256))
+
+
 def knot(pcm, index):
     weights = populations(pcm)
     volume = max(peaks(pcm))
@@ -147,27 +159,26 @@ def knot(pcm, index):
     # Independent adaptation of the public (2,3) torus-knot equation, with three
     # travelling ribbons. Fixed camera; qutrit controls are new, not donor physics.
     for state, color in enumerate(PALETTE):
+        colors = ribbon_colors(color)
+        base_brightness = 110 + isqrt(weights[state]*1000000)*65//1000000
         for strand in (-1, 0, 1):
             points = []
-            for i in range(513):
-                t = i*TURN//512
+            for t, cos3, sin3, cos2, sin2 in knot_basis():
                 v = state*TURN//3 + strand*TURN//18 + index*TURN//300 + t*5
                 minor = 44 + volume*10//32768 + cosine(v)*13//16384
-                radial = 91 + minor*cosine(3*t)//16384
-                x = radial*cosine(2*t)//16384
-                y = radial*sine(2*t)//16384
-                z = minor*sine(3*t)//16384 + sine(v)*13//16384
+                radial = 91 + minor*cos3//16384
+                x = radial*cos2//16384
+                y = radial*sin2//16384
+                z = minor*sin3//16384 + sine(v)*13//16384
                 # Static orthographic tilt, with depth-sorted ribbon segments.
-                sx, sy, depth = 320+x*3//2, 187+y*7//10-z, y+z
+                sx, sy, depth = 320+x*6//5, 187+(y*7//10-z)*4//5, y+z
                 points.append((sx, sy, depth))
             for i, (a,b) in enumerate(zip(points, points[1:])):
                 travel = (i*1024//512 - index*7 - state*341) % 1024
-                brightness = 110 + isqrt(weights[state]*1000000)*65//1000000
-                brightness += max(0, 75-abs(travel-512))
+                brightness = base_brightness + max(0, 75-abs(travel-512))
                 if strand:
                     brightness = brightness*3//5
-                rgb = tuple(min(255,c*brightness//190) for c in color)
-                segments.append((a[2], a[:2], b[:2], rgb))
+                segments.append((a[2], a[:2], b[:2], colors[brightness]))
     for _, a, b, color in sorted(segments, key=lambda s:s[0]):
         draw.line((a,b), fill=color, width=2)
     image = glow(ink)
@@ -210,8 +221,7 @@ def render(pcm, style='bars', index=0):
 
 def reference_thumbnail(pcm, style='bars', index=0):
     frame = render(pcm, style, index)
-    return bytes(frame[(y*WIDTH+x)*3+c] for y in range(2,HEIGHT,4)
-                 for x in range(2,WIDTH,4) for c in range(3))
+    return Image.frombytes('RGB', (WIDTH,HEIGHT), frame).resize((160,90), Image.Resampling.NEAREST).tobytes()
 
 
 def check_thumbnail(actual, expected, header_rows=0):
@@ -224,10 +234,22 @@ def check_thumbnail(actual, expected, header_rows=0):
     """
     if len(actual) != 160*90*3 or len(expected) != 160*90*3:
         raise ValueError('Incomplete decoded visualizer frame')
-    region = [3*(y*160+x) for y in range(max(16,header_rows),77) for x in range(10,150)]
-    foreground = [i for i in region if max(expected[i:i+3]) > 150]
-    if not foreground or sum(max(actual[i:i+3]) > 110 for i in foreground) < len(foreground)*.8:
+    top = max(16, header_rows)
+    if top >= 77:
         raise ValueError('Visualizer is missing or incomplete in the encoded MP4')
-    mismatch = sum(max(abs(actual[i+c]-expected[i+c]) for c in range(3)) > 75 for i in region)
-    if mismatch > len(region)*.025:
+    box = (10, top, 150, 77)
+    actual_image = Image.frombytes('RGB', (160,90), actual).crop(box)
+    expected_image = Image.frombytes('RGB', (160,90), expected).crop(box)
+    def maximum_channel(image):
+        r,g,b = image.split()
+        return ImageChops.lighter(ImageChops.lighter(r,g),b)
+    expected_mask = maximum_channel(expected_image).point([0]*151 + [255]*105)
+    actual_mask = maximum_channel(actual_image).point([0]*111 + [255]*145)
+    foreground = expected_mask.histogram()[255]
+    present = ImageChops.multiply(expected_mask, actual_mask).histogram()[255]
+    if not foreground or present*5 < foreground*4:
+        raise ValueError('Visualizer is missing or incomplete in the encoded MP4')
+    difference = maximum_channel(ImageChops.difference(actual_image, expected_image))
+    mismatch = sum(difference.histogram()[76:])
+    if mismatch*40 > 140*(77-top):
         raise ValueError('Encoded MP4 does not match the audio-driven visualizer')

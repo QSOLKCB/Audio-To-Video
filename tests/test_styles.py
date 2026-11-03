@@ -80,6 +80,14 @@ class StyleTests(unittest.TestCase):
                         convert(replace(self.job, audio=source, style='qutrit-galaxy'))
                 self.assertFalse(self.job.output.exists())
 
+    def test_narrow_title_glyphs_survive_sampling_and_encoding(self):
+        source = audio(self.root/'short.wav', .043)
+        for text in ('.', 'i', '·'):
+            for resolution in ('720p', '1080p'):
+                result = convert(replace(self.job, audio=source, title=text, resolution=resolution,
+                                         output=self.root/(text+resolution+'.mp4')))
+                self.assertEqual(result.verified_frames, 2)
+
     def test_title_validation_and_fit(self):
         self.assertEqual(normalize_title('   '), '')
         for title in ('a\nb', '\0', 'x'*121):

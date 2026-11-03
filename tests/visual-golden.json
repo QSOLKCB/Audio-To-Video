@@ -1,5 +1,6 @@
 {
-  "description": "Pre-OPT renderer RGB24 hashes on Pillow 10.2.0; deterministic fixtures, 640x360.",
+  "description": "Pre-OPT renderer with shared viewport correction; Pillow 10.2.0, deterministic fixtures, 640x360.",
+  "source_sha256": "3d5a97710e9c67f26e95c2f6463ed6c553052101c24e4aae64d7638b86f9d90c",
   "cases": [
     {
       "pcm": "silence",
@@ -77,25 +78,25 @@
       "pcm": "silence",
       "style": "gluball-knot",
       "index": 0,
-      "sha256": "e39aa6c4aea019d4cafcf9e0703c69a89de95a570bc70bbf86b8f17b6b0b4edd"
+      "sha256": "9fcdb42ace53016c1abdd4c19db51be9dfef120d2894ca15080806d0b7f063c0"
     },
     {
       "pcm": "silence",
       "style": "gluball-knot",
       "index": 31,
-      "sha256": "42005c70f48c85119851a3b35e523ae80745c440577a7fe5c524b5c035edc6c4"
+      "sha256": "25d9c3732902e73908badc9d52e487774fbe6af3b3502972d2d1e49c5f1a4167"
     },
     {
       "pcm": "silence",
       "style": "gluball-knot",
       "index": 90,
-      "sha256": "bf4de0428f977819a49c373b86f86402903a526ee875562155220758f3e2bc5c"
+      "sha256": "3d8cb73184f74a492fe2d6cb0a463b602734faf2d040860ecfc33d4db1aec3b3"
     },
     {
       "pcm": "silence",
       "style": "gluball-knot",
       "index": 900000,
-      "sha256": "0081d42c0ac62186dc394297019651fccdbdf36cdd9f289f7cdbf637b5f911ce"
+      "sha256": "1fa6827e9e804cc6245ae1ef260fbe288080af6c1af2e122a0f1a848d94eae78"
     },
     {
       "pcm": "antiphase",
@@ -173,25 +174,25 @@
       "pcm": "antiphase",
       "style": "gluball-knot",
       "index": 0,
-      "sha256": "3386ab97154115f65c504e7f012415a40d9cb62285145ad612d83c433541cbfb"
+      "sha256": "9f9f7ba1e1db5e44ac5d1e3adbd91b968222f6c0dcdf1becc852163cbee54e01"
     },
     {
       "pcm": "antiphase",
       "style": "gluball-knot",
       "index": 31,
-      "sha256": "32b55c3f804670f26910a653ada70b5693a6fa00bf6a0db81ab9094fdb45dcdd"
+      "sha256": "f631fbc970cfad8855c8de18f1d0bdfc8d2d17216a32018f3414773badda4845"
     },
     {
       "pcm": "antiphase",
       "style": "gluball-knot",
       "index": 90,
-      "sha256": "83fb0bf3e9cbd38fde6e89ecc9706e72305a65b9818a07240de75ae697306feb"
+      "sha256": "0a64d3ed2a1330e98b473a2ad8a45bfe5d35fb755627a128598c01e7ff28bc50"
     },
     {
       "pcm": "antiphase",
       "style": "gluball-knot",
       "index": 900000,
-      "sha256": "6d6876623e1a55f96f9f62762a37082a57165b1ab1c2163a4478148524e41fb7"
+      "sha256": "609a61eb99599f812c39b1f03d4d25783a1e10d673fff1fc5a7600c3cbbbef49"
     },
     {
       "pcm": "ramp",
@@ -269,25 +270,25 @@
       "pcm": "ramp",
       "style": "gluball-knot",
       "index": 0,
-      "sha256": "a61675fef2acb460748464222a761b2832aa1d7c5bf5f1abca480b4f22fb159a"
+      "sha256": "194088a173a4a49c4a70dc9265d22eb662da832cf916ddbf5ca480494808a75f"
     },
     {
       "pcm": "ramp",
       "style": "gluball-knot",
       "index": 31,
-      "sha256": "17bce37939b50c5c145c4fc3af464cca84643a51a6811b3abf4ba12a0d5ba0e4"
+      "sha256": "b7889861f06445f2fb6c97f4cc5ef0323dd36147b62254df9fc1fe570490ed44"
     },
     {
       "pcm": "ramp",
       "style": "gluball-knot",
       "index": 90,
-      "sha256": "96b94b212bd29bc80c603a7055001a9fd33804804dd1f3d5ed4c210773542b2d"
+      "sha256": "a908e0935ea5bd00f7232c19705d3f20f0160b56497ac9b56c0a80cbe9ed13b9"
     },
     {
       "pcm": "ramp",
       "style": "gluball-knot",
       "index": 900000,
-      "sha256": "24b7061a82e90c553ad4dece6214c32714f65ea524f7b62837c1a5450e32b96e"
+      "sha256": "564875eef0a59da9d64f2f21a8941f6cbec14f5224ae0f8a9fdc35c7f1acee57"
     }
   ]
 }
