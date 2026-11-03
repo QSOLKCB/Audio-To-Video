@@ -8,10 +8,11 @@ import threading
 from . import __version__
 from .core import Job, convert, dependencies
 from .process import Cancelled, RenderError
+from .visualizer import STYLES
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description="Local audio + still image or deterministic waveform → MP4")
+    parser = argparse.ArgumentParser(description="Local audio + still image or deterministic visualizer → MP4")
     parser.add_argument("--version", action="version", version=__version__)
     commands = parser.add_subparsers(dest="command")
     commands.add_parser("doctor", help="check the installed local media tools")
@@ -20,7 +21,9 @@ def main(argv=None):
     export.add_argument("output", type=Path, help="new .mp4 file (never overwritten)")
     mode = export.add_mutually_exclusive_group(required=True)
     mode.add_argument("--image", type=Path, help="PNG or JPEG still image")
-    mode.add_argument("--visualizer", action="store_true", help="deterministic waveform bars")
+    mode.add_argument("--visualizer", action="store_true", help="deterministic audio-reactive visuals")
+    export.add_argument("--style", choices=STYLES, default="bars", help="visualizer style (default: bars)")
+    export.add_argument("--title", default="", help="optional top title, up to 120 characters")
     export.add_argument("--resolution", choices=("720p", "1080p"), default="1080p")
     args = parser.parse_args(argv)
     if args.command == "doctor":
@@ -38,7 +41,7 @@ def main(argv=None):
     previous = {s: signal.signal(s, lambda *_: cancel.set()) for s in (signal.SIGINT, signal.SIGTERM)}
     try:
         result = convert(Job(args.audio, args.output, "still" if args.image else "visualizer",
-                             args.image, args.resolution), cancel,
+                             args.image, args.resolution, args.style, args.title), cancel,
                          lambda message, fraction: print(f"{fraction:5.0%}  {message}", file=sys.stderr))
         print(result.output)
         return 0

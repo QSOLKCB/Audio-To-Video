@@ -9,7 +9,8 @@ import tempfile
 import threading
 
 from .process import Cancelled, RenderError, capture, checkpoint, child, read_exact, run, write_frame
-from .visualizer import FPS, HEIGHT, RATE, SAMPLES, WIDTH, check_thumbnail, reference_thumbnail, render
+from .visualizer import FPS, HEIGHT, RATE, SAMPLES, WIDTH, STYLES, check_thumbnail, reference_thumbnail, render
+from .title import HEADER, check_title, normalize_title, prepare_title, title_image
 
 AUDIO_FORMATS = {".mp3": "mp3", ".m4a": "mov", ".wav": "wav"}
 IMAGE_FORMATS = {".png": "png", ".jpg": "mjpeg", ".jpeg": "mjpeg"}
@@ -23,6 +24,8 @@ class Job:
     mode: str = "visualizer"
     image: Path | None = None
     resolution: str = "1080p"
+    style: str = "bars"
+    title: str = ""
 
 
 @dataclass(frozen=True)
@@ -51,6 +54,11 @@ def regular(path, extensions, label):
 def validate(job):
     if job.mode not in ("still", "visualizer") or job.resolution not in SIZES:
         raise RenderError("Choose Still image or Visualizer, and 720p or 1080p")
+    if job.style not in STYLES:
+        raise RenderError("Choose a supported visualizer style")
+    title = normalize_title(job.title)
+    if title:
+        title_image(title, SIZES[job.resolution][0])
     audio = regular(job.audio, AUDIO_FORMATS, "Audio")
     image = regular(job.image, IMAGE_FORMATS, "Image") if job.mode == "still" and job.image else None
     if job.mode == "still" and image is None:
@@ -65,7 +73,7 @@ def validate(job):
     missing = dependencies()
     if missing:
         raise RenderError("Install missing tools: " + ", ".join(missing) + " (./install-deps.sh)")
-    return Job(audio, output, job.mode, image, job.resolution)
+    return Job(audio, output, job.mode, image, job.resolution, job.style, title)
 
 
 def ffmpeg():
@@ -91,11 +99,12 @@ def probe(path, cancel):
 
 def prepare_still(job, work, cancel):
     width, height = SIZES[job.resolution]
+    header = HEADER * (width // WIDTH) if job.title else 0
     output = work / "still.ppm"
     # Flatten transparency explicitly. Fit the whole image without stretching.
     graph = (f"color=c=0x0c1219:s={width}x{height}:r={FPS}[bg];"
-             f"[0:v:0]scale={width}:{height}:force_original_aspect_ratio=decrease,setsar=1[fg];"
-             "[bg][fg]overlay=(W-w)/2:(H-h)/2:shortest=1,format=rgb24[v]")
+             f"[0:v:0]scale={width}:{height-header}:force_original_aspect_ratio=decrease,setsar=1[fg];"
+             f"[bg][fg]overlay=(W-w)/2:{header}+(H-{header}-h)/2:shortest=1,format=rgb24[v]")
     run(ffmpeg() + ["-protocol_whitelist", "file,pipe", "-threads", "1", "-f", "image2",
                    "-pattern_type", "none", "-c:v", IMAGE_FORMATS[job.image.suffix.lower()],
                    "-i", str(job.image), "-filter_complex", graph, "-map", "[v]",
@@ -103,7 +112,7 @@ def prepare_still(job, work, cancel):
     return output
 
 
-def encoder_args(job, pcm, target, frames, still=None):
+def encoder_args(job, pcm, target, frames, still=None, title=None):
     width, height = SIZES[job.resolution]
     args = ffmpeg()
     if still:
@@ -112,9 +121,16 @@ def encoder_args(job, pcm, target, frames, still=None):
         args += ["-f", "rawvideo", "-pixel_format", "rgb24", "-video_size", f"{WIDTH}x{HEIGHT}",
                  "-framerate", str(FPS)] + local_input("pipe:0")
     args += ["-f", "s16le", "-ar", str(RATE), "-ac", "2"] + local_input(pcm)
+    scaling = f"scale={width}:{height}:flags=neighbor,setsar=1"
+    if title:
+        args += ["-loop", "1", "-framerate", str(FPS)] + local_input(title)
+        graph = (f"[0:v:0]{scaling},format=rgb24[base];"
+                 "[base][2:v:0]overlay=0:0:shortest=1:format=rgb,format=yuv420p[v]")
+        args += ["-filter_complex", graph, "-map", "[v]"]
+    else:
+        args += ["-vf", scaling + ",format=yuv420p", "-map", "0:v:0"]
     # Both streams are explicit. An MP4 containing only AAC is never success.
-    args += ["-map", "0:v:0", "-map", "1:a:0", "-map_metadata", "-1", "-map_chapters", "-1",
-             "-vf", f"scale={width}:{height}:flags=neighbor,setsar=1,format=yuv420p",
+    args += ["-map", "1:a:0", "-map_metadata", "-1", "-map_chapters", "-1",
              "-c:v", "libx264", "-preset", "veryfast", "-crf", "18", "-threads:v", "1",
              "-pix_fmt", "yuv420p", "-fps_mode", "cfr", "-r", str(FPS),
              "-c:a", "aac", "-b:a", "192k", "-threads:a", "1", "-t", f"{frames / FPS:.9f}",
@@ -145,8 +161,10 @@ def verify_output(path, pcm, job, frame_count, sample_count, cancel, progress):
             raise ValueError
     except (ValueError, KeyError, TypeError):
         raise RenderError("Encoded audio duration does not match the source") from None
+    # Convert at native size before sampling. Scaling YUV420 first independently
+    # samples chroma and luma, turning thin coloured lines grey in the thumbnail.
     args = ffmpeg() + local_input(path) + ["-map", "0:v:0", "-an", "-vf",
-            "scale=160:90:flags=neighbor", "-pix_fmt", "rgb24", "-f", "rawvideo", "pipe:1"]
+            "format=rgb24,scale=160:90:flags=neighbor", "-pix_fmt", "rgb24", "-f", "rawvideo", "pipe:1"]
     count = 0
     with pcm.open("rb") as samples, child(args, cancel, output_pipe=True) as proc:
         while True:
@@ -155,12 +173,14 @@ def verify_output(path, pcm, job, frame_count, sample_count, cancel, progress):
                 break
             if len(frame) != 160 * 90 * 3 or count >= frame_count:
                 raise RenderError("MP4 contains an incomplete or unexpected video frame")
-            if job.mode == "visualizer":
-                expected = reference_thumbnail(samples.read(SAMPLES * 4))
-                try:
-                    check_thumbnail(frame, expected)
-                except ValueError as exc:
-                    raise RenderError(f"Video verification failed at frame {count}: {exc}") from exc
+            try:
+                if job.title:
+                    check_title(frame, job.title, SIZES[job.resolution][0])
+                if job.mode == "visualizer":
+                    expected = reference_thumbnail(samples.read(SAMPLES * 4), job.style, count)
+                    check_thumbnail(frame, expected, HEADER // 4 if job.title else 0)
+            except ValueError as exc:
+                raise RenderError(f"Video verification failed at frame {count}: {exc}") from exc
             count += 1
             if count % FPS == 0:
                 progress("Checking encoded video", .72 + .25 * count / frame_count)
@@ -191,16 +211,17 @@ def convert(job: Job, cancel=None, progress=lambda message, fraction: None) -> R
         frames = (samples + SAMPLES - 1) // SAMPLES
         seconds = samples / RATE
         still = prepare_still(job, work, cancel) if job.mode == "still" else None
+        title = prepare_title(job.title, SIZES[job.resolution][0], work)
         progress("Rendering video", .10)
         # Round VIDEO up to a complete frame. Audio ends at its real sample count.
         # A source-duration -t can round down and silently discard the final frame.
-        args = encoder_args(job, pcm, target, frames, still)
+        args = encoder_args(job, pcm, target, frames, still, title)
         if still:
             run(args, cancel)
         else:
             with pcm.open("rb") as source, child(args, cancel, input_pipe=True) as proc:
                 for index in range(frames):
-                    write_frame(proc, render(source.read(SAMPLES * 4)), cancel)
+                    write_frame(proc, render(source.read(SAMPLES * 4), job.style, index), cancel)
                     if index % FPS == 0:
                         progress("Rendering visualizer", .10 + .60 * index / frames)
                 proc.stdin.close()

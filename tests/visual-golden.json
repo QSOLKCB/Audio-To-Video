@@ -1,0 +1,294 @@
+{
+  "description": "Pre-OPT renderer with shared viewport correction; Pillow 10.2.0, deterministic fixtures, 640x360.",
+  "source_sha256": "3d5a97710e9c67f26e95c2f6463ed6c553052101c24e4aae64d7638b86f9d90c",
+  "cases": [
+    {
+      "pcm": "silence",
+      "style": "bars",
+      "index": 0,
+      "sha256": "b6798c89700c80fe6ae8b76e70ddc93acf485179e9d99f8bb5cf699f239fab5f"
+    },
+    {
+      "pcm": "silence",
+      "style": "bars",
+      "index": 31,
+      "sha256": "b6798c89700c80fe6ae8b76e70ddc93acf485179e9d99f8bb5cf699f239fab5f"
+    },
+    {
+      "pcm": "silence",
+      "style": "bars",
+      "index": 90,
+      "sha256": "b6798c89700c80fe6ae8b76e70ddc93acf485179e9d99f8bb5cf699f239fab5f"
+    },
+    {
+      "pcm": "silence",
+      "style": "bars",
+      "index": 900000,
+      "sha256": "b6798c89700c80fe6ae8b76e70ddc93acf485179e9d99f8bb5cf699f239fab5f"
+    },
+    {
+      "pcm": "silence",
+      "style": "scope",
+      "index": 0,
+      "sha256": "72b528fc4379e26eb6b0f7ea887132e782462c6672889e4e6801662166fa6f64"
+    },
+    {
+      "pcm": "silence",
+      "style": "scope",
+      "index": 31,
+      "sha256": "72b528fc4379e26eb6b0f7ea887132e782462c6672889e4e6801662166fa6f64"
+    },
+    {
+      "pcm": "silence",
+      "style": "scope",
+      "index": 90,
+      "sha256": "72b528fc4379e26eb6b0f7ea887132e782462c6672889e4e6801662166fa6f64"
+    },
+    {
+      "pcm": "silence",
+      "style": "scope",
+      "index": 900000,
+      "sha256": "72b528fc4379e26eb6b0f7ea887132e782462c6672889e4e6801662166fa6f64"
+    },
+    {
+      "pcm": "silence",
+      "style": "qutrit-galaxy",
+      "index": 0,
+      "sha256": "47836d04111d7dabd977f6498bb443a48c3c0ac297fc127d4618df7fa39bc821"
+    },
+    {
+      "pcm": "silence",
+      "style": "qutrit-galaxy",
+      "index": 31,
+      "sha256": "0248ccb365e48c1898a8af0684a7b15790b7a48c4e08378f15c7a190eb5977a4"
+    },
+    {
+      "pcm": "silence",
+      "style": "qutrit-galaxy",
+      "index": 90,
+      "sha256": "af6c5ce4281a0dd6b721a9b891eebbaf344aa6cefac363bfc5a2e4f8cb583e89"
+    },
+    {
+      "pcm": "silence",
+      "style": "qutrit-galaxy",
+      "index": 900000,
+      "sha256": "47836d04111d7dabd977f6498bb443a48c3c0ac297fc127d4618df7fa39bc821"
+    },
+    {
+      "pcm": "silence",
+      "style": "gluball-knot",
+      "index": 0,
+      "sha256": "9fcdb42ace53016c1abdd4c19db51be9dfef120d2894ca15080806d0b7f063c0"
+    },
+    {
+      "pcm": "silence",
+      "style": "gluball-knot",
+      "index": 31,
+      "sha256": "25d9c3732902e73908badc9d52e487774fbe6af3b3502972d2d1e49c5f1a4167"
+    },
+    {
+      "pcm": "silence",
+      "style": "gluball-knot",
+      "index": 90,
+      "sha256": "3d8cb73184f74a492fe2d6cb0a463b602734faf2d040860ecfc33d4db1aec3b3"
+    },
+    {
+      "pcm": "silence",
+      "style": "gluball-knot",
+      "index": 900000,
+      "sha256": "1fa6827e9e804cc6245ae1ef260fbe288080af6c1af2e122a0f1a848d94eae78"
+    },
+    {
+      "pcm": "antiphase",
+      "style": "bars",
+      "index": 0,
+      "sha256": "8b0862858217d271e792d22f16993c046080c715f7bd40304e35588cc3ce1bbb"
+    },
+    {
+      "pcm": "antiphase",
+      "style": "bars",
+      "index": 31,
+      "sha256": "8b0862858217d271e792d22f16993c046080c715f7bd40304e35588cc3ce1bbb"
+    },
+    {
+      "pcm": "antiphase",
+      "style": "bars",
+      "index": 90,
+      "sha256": "8b0862858217d271e792d22f16993c046080c715f7bd40304e35588cc3ce1bbb"
+    },
+    {
+      "pcm": "antiphase",
+      "style": "bars",
+      "index": 900000,
+      "sha256": "8b0862858217d271e792d22f16993c046080c715f7bd40304e35588cc3ce1bbb"
+    },
+    {
+      "pcm": "antiphase",
+      "style": "scope",
+      "index": 0,
+      "sha256": "615b93d44935335a815e51955a7c3add929687813483af96adb6445ca84b5bea"
+    },
+    {
+      "pcm": "antiphase",
+      "style": "scope",
+      "index": 31,
+      "sha256": "615b93d44935335a815e51955a7c3add929687813483af96adb6445ca84b5bea"
+    },
+    {
+      "pcm": "antiphase",
+      "style": "scope",
+      "index": 90,
+      "sha256": "615b93d44935335a815e51955a7c3add929687813483af96adb6445ca84b5bea"
+    },
+    {
+      "pcm": "antiphase",
+      "style": "scope",
+      "index": 900000,
+      "sha256": "615b93d44935335a815e51955a7c3add929687813483af96adb6445ca84b5bea"
+    },
+    {
+      "pcm": "antiphase",
+      "style": "qutrit-galaxy",
+      "index": 0,
+      "sha256": "666b7dcdad7c2f3fb6ef5aa78e2614a14f86462035b7eee31f6caa7cb2bcc57d"
+    },
+    {
+      "pcm": "antiphase",
+      "style": "qutrit-galaxy",
+      "index": 31,
+      "sha256": "2b3e91eca7d24b3226cfe54dd0803d613be7b1cad105ea28b9bbbe606793eae7"
+    },
+    {
+      "pcm": "antiphase",
+      "style": "qutrit-galaxy",
+      "index": 90,
+      "sha256": "d78f1b1dcf359b4ebe291bfeff865a52f22acdb7987afccb32b70fdb0825d361"
+    },
+    {
+      "pcm": "antiphase",
+      "style": "qutrit-galaxy",
+      "index": 900000,
+      "sha256": "666b7dcdad7c2f3fb6ef5aa78e2614a14f86462035b7eee31f6caa7cb2bcc57d"
+    },
+    {
+      "pcm": "antiphase",
+      "style": "gluball-knot",
+      "index": 0,
+      "sha256": "9f9f7ba1e1db5e44ac5d1e3adbd91b968222f6c0dcdf1becc852163cbee54e01"
+    },
+    {
+      "pcm": "antiphase",
+      "style": "gluball-knot",
+      "index": 31,
+      "sha256": "f631fbc970cfad8855c8de18f1d0bdfc8d2d17216a32018f3414773badda4845"
+    },
+    {
+      "pcm": "antiphase",
+      "style": "gluball-knot",
+      "index": 90,
+      "sha256": "0a64d3ed2a1330e98b473a2ad8a45bfe5d35fb755627a128598c01e7ff28bc50"
+    },
+    {
+      "pcm": "antiphase",
+      "style": "gluball-knot",
+      "index": 900000,
+      "sha256": "609a61eb99599f812c39b1f03d4d25783a1e10d673fff1fc5a7600c3cbbbef49"
+    },
+    {
+      "pcm": "ramp",
+      "style": "bars",
+      "index": 0,
+      "sha256": "c1064ba44445b75685f0485411673c4c3b606be879e091d0637d966d1cb9c575"
+    },
+    {
+      "pcm": "ramp",
+      "style": "bars",
+      "index": 31,
+      "sha256": "c1064ba44445b75685f0485411673c4c3b606be879e091d0637d966d1cb9c575"
+    },
+    {
+      "pcm": "ramp",
+      "style": "bars",
+      "index": 90,
+      "sha256": "c1064ba44445b75685f0485411673c4c3b606be879e091d0637d966d1cb9c575"
+    },
+    {
+      "pcm": "ramp",
+      "style": "bars",
+      "index": 900000,
+      "sha256": "c1064ba44445b75685f0485411673c4c3b606be879e091d0637d966d1cb9c575"
+    },
+    {
+      "pcm": "ramp",
+      "style": "scope",
+      "index": 0,
+      "sha256": "29e44e8cf80498c2dc3cbf7c4b45c18933d8607ff7811fb8296cb6e6f4aabde6"
+    },
+    {
+      "pcm": "ramp",
+      "style": "scope",
+      "index": 31,
+      "sha256": "29e44e8cf80498c2dc3cbf7c4b45c18933d8607ff7811fb8296cb6e6f4aabde6"
+    },
+    {
+      "pcm": "ramp",
+      "style": "scope",
+      "index": 90,
+      "sha256": "29e44e8cf80498c2dc3cbf7c4b45c18933d8607ff7811fb8296cb6e6f4aabde6"
+    },
+    {
+      "pcm": "ramp",
+      "style": "scope",
+      "index": 900000,
+      "sha256": "29e44e8cf80498c2dc3cbf7c4b45c18933d8607ff7811fb8296cb6e6f4aabde6"
+    },
+    {
+      "pcm": "ramp",
+      "style": "qutrit-galaxy",
+      "index": 0,
+      "sha256": "b14eb8f3f9d28d26d4f52032fe6f30600d05b5ca670432890f5d2bc5436ceb1e"
+    },
+    {
+      "pcm": "ramp",
+      "style": "qutrit-galaxy",
+      "index": 31,
+      "sha256": "68d6356259f22fe01a74240142b03063809b9196bcc56d8b8691f3f9a3501c87"
+    },
+    {
+      "pcm": "ramp",
+      "style": "qutrit-galaxy",
+      "index": 90,
+      "sha256": "ed50da75d1b62a17903ebeea1ef667c379d0058a46b45597877f057a6cdb5d0e"
+    },
+    {
+      "pcm": "ramp",
+      "style": "qutrit-galaxy",
+      "index": 900000,
+      "sha256": "b14eb8f3f9d28d26d4f52032fe6f30600d05b5ca670432890f5d2bc5436ceb1e"
+    },
+    {
+      "pcm": "ramp",
+      "style": "gluball-knot",
+      "index": 0,
+      "sha256": "194088a173a4a49c4a70dc9265d22eb662da832cf916ddbf5ca480494808a75f"
+    },
+    {
+      "pcm": "ramp",
+      "style": "gluball-knot",
+      "index": 31,
+      "sha256": "b7889861f06445f2fb6c97f4cc5ef0323dd36147b62254df9fc1fe570490ed44"
+    },
+    {
+      "pcm": "ramp",
+      "style": "gluball-knot",
+      "index": 90,
+      "sha256": "a908e0935ea5bd00f7232c19705d3f20f0160b56497ac9b56c0a80cbe9ed13b9"
+    },
+    {
+      "pcm": "ramp",
+      "style": "gluball-knot",
+      "index": 900000,
+      "sha256": "564875eef0a59da9d64f2f21a8941f6cbec14f5224ae0f8a9fdc35c7f1acee57"
+    }
+  ]
+}

@@ -18,7 +18,7 @@ jobs:
       - name: Install local media and desktop dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg python3-gi gir1.2-gtk-4.0 gir1.2-adw-1 xvfb xauth dbus-x11 imagemagick
+          sudo apt-get install -y ffmpeg python3-pil fonts-dejavu-core python3-gi gir1.2-gtk-4.0 gir1.2-adw-1 xvfb xauth dbus-x11 imagemagick
       - name: Real encoding and failure-path tests
         run: /usr/bin/python3 -m unittest discover -s tests -v
       - name: Syntax and launcher checks
@@ -34,7 +34,7 @@ jobs:
           mkdir packaged
           tar -xzf dist/Audio-To-Video-*-linux.tar.gz -C packaged
       - name: Packaged native GTK interaction and real exports
-        working-directory: packaged/Audio-To-Video-0.1.0-preview
+        working-directory: packaged/Audio-To-Video-0.2.0-preview
         env:
           GSK_RENDERER: cairo
           GTK_A11Y: none

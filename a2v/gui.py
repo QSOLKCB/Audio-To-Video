@@ -11,7 +11,9 @@ from . import __version__
 from .core import AUDIO_FORMATS, IMAGE_FORMATS, Job, dependencies, validate
 from .desktop import Controller
 from .process import RenderError
-from .visualizer import WIDTH, HEIGHT, render
+from .visualizer import WIDTH, HEIGHT, STYLES, render
+from .title import normalize_title, title_image
+from PIL import Image
 
 
 def label(text, style=None):
@@ -30,7 +32,7 @@ def button(text, callback):
 
 class Window(Adw.ApplicationWindow):
     def __init__(self, app, controller=None):
-        super().__init__(application=app, title="Audio to Video", default_width=720, default_height=800)
+        super().__init__(application=app, title="Audio to Video", default_width=720, default_height=900)
         self.set_size_request(480, 560)
         self.controller = controller or Controller()
         self.audio = self.image = self.output = None
@@ -73,6 +75,16 @@ class Window(Adw.ApplicationWindow):
         self.viz_button.connect("toggled", self.mode_changed, "visualizer")
         body.append(choices)
 
+        self.style_row = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE)
+        self.style_row.add_css_class("boxed-list")
+        style_action = Adw.ActionRow(title="Visual style", use_markup=False)
+        self.style = Gtk.DropDown.new_from_strings(list(STYLES.values()))
+        self.style.set_valign(Gtk.Align.CENTER)
+        self.style.set_tooltip_text("Visualizer style")
+        style_action.add_suffix(self.style)
+        self.style_row.append(style_action)
+        body.append(self.style_row)
+
         self.visual = Gtk.Stack(vhomogeneous=True)
         self.visual.set_size_request(-1, 150)
         self.visual.add_css_class("card")
@@ -91,6 +103,14 @@ class Window(Adw.ApplicationWindow):
         body.append(self.visual_note)
         self.image_row, self.image_button = self.file_row("Image", "Choose PNG or JPEG", self.choose_image)
         body.append(self.image_row)
+
+        self.track_title = Gtk.Entry(placeholder_text="Name – Track (optional)", max_length=120)
+        self.track_title.set_tooltip_text("Title at the top of the video; leave empty for no text")
+        self.track_title.set_size_request(-1, 42)
+        body.append(self.track_title)
+        self.preview_key = None
+        self.style.connect("notify::selected", lambda *_: self.selection_changed())
+        self.track_title.connect("changed", lambda *_: self.selection_changed())
 
         settings = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE)
         settings.add_css_class("boxed-list")
@@ -165,7 +185,7 @@ class Window(Adw.ApplicationWindow):
     def refresh(self):
         busy = self.controller.busy or self.closing
         for widget in (self.audio_button, self.image_button, self.output_button,
-                       self.still_button, self.viz_button, self.resolution):
+                       self.still_button, self.viz_button, self.resolution, self.style, self.track_title):
             widget.set_sensitive(not busy)
         self.export_button.set_sensitive(not busy and self.audio is not None and self.output is not None
                                          and (self.mode == "visualizer" or self.image is not None)
@@ -175,10 +195,24 @@ class Window(Adw.ApplicationWindow):
         self.cancel_button.set_sensitive(not self.controller.cancel.is_set())
         self.open_button.set_visible(self.controller.result is not None and not self.controller.busy)
         self.image_row.set_visible(self.mode == "still")
+        self.style_row.set_visible(self.mode == "visualizer")
         self.visual.set_visible_child_name("waveform" if self.mode == "visualizer" else "cover" if self.image else "empty")
-        self.visual_note.set_text("Waveform bars follow the audio. Silence keeps a visible centre line."
+        self.visual_note.set_text("Style preview. Movement follows your audio in the exported video."
                                  if self.mode == "visualizer" else
                                  "PNG or JPEG. Fitted to the frame without cropping or movement.")
+        key = (self.style.get_selected(), self.track_title.get_text())
+        if self.mode == "visualizer" and key != self.preview_key:
+            picture = Image.frombytes("RGB", (WIDTH, HEIGHT), render(b"", list(STYLES)[key[0]], 60))
+            try:
+                text = normalize_title(key[1])
+                if text:
+                    picture.paste(title_image(text, WIDTH), (0, 0))
+            except RenderError:
+                pass  # Export validation presents the actionable error.
+            texture = Gdk.MemoryTexture.new(WIDTH, HEIGHT, Gdk.MemoryFormat.R8G8B8,
+                                            GLib.Bytes.new(picture.tobytes()), WIDTH * 3)
+            self.waveform.set_paintable(texture)
+            self.preview_key = key
         if self.audio:
             self.audio_row.get_first_child().set_subtitle(self.audio.name)
         if self.image:
@@ -260,7 +294,8 @@ class Window(Adw.ApplicationWindow):
             return
         try:
             job = validate(Job(self.audio, self.output, self.mode, self.image,
-                               "1080p" if self.resolution.get_selected() == 0 else "720p"))
+                               "1080p" if self.resolution.get_selected() == 0 else "720p",
+                               list(STYLES)[self.style.get_selected()], self.track_title.get_text()))
             self.controller.start(job)
             self.refresh()
         except (RenderError, OSError) as exc:
@@ -297,8 +332,10 @@ class Window(Adw.ApplicationWindow):
         view = Gtk.TextView(editable=False, cursor_visible=False, wrap_mode=Gtk.WrapMode.WORD_CHAR,
                             top_margin=20, bottom_margin=20, left_margin=20, right_margin=20)
         view.get_buffer().set_text(f"Audio to Video {__version__}\n\n{self.controller.error or self.controller.status}"
-            "\n\nLocal CPU rendering: Python + FFmpeg. The visualizer uses fixed 48 kHz sample windows, integer drawing,"
-            " and 30 fps. Every decoded MP4 frame is compared with its waveform reference before saving."
+            "\n\nLocal CPU rendering: Python + Pillow + FFmpeg. Visualizers use fixed 48 kHz sample windows"
+            " and 30 fps. Every decoded MP4 frame is compared with its visual and title references before saving."
+            "\n\nQuantum Galaxy and GLUBALL Knot map three audio bands to normalized state weights."
+            " They are quantum-inspired artwork, not a physics simulation."
             "\n\nTemporary decoded audio uses about 660 MiB per hour, plus the MP4, in the destination folder."
             "\n\nUbuntu 24.04+: ./install-deps.sh\nThe application makes no network requests.")
         scroll = Gtk.ScrolledWindow()
