@@ -334,8 +334,8 @@ class Window(Adw.ApplicationWindow):
         view.get_buffer().set_text(f"Audio to Video {__version__}\n\n{self.controller.error or self.controller.status}"
             "\n\nLocal CPU rendering: Python + Pillow + FFmpeg. Visualizers use fixed 48 kHz sample windows"
             " and 30 fps. Every decoded MP4 frame is compared with its visual and title references before saving."
-            "\n\nQuantum Galaxy and GLUBALL Knot map three audio bands to normalized state weights."
-            " They are quantum-inspired artwork, not a physics simulation."
+            "\n\nQuantum Galaxy, GLUBALL Knot and ETQ Graph Walk use three audio bands as visual controls."
+            " They are quantum-inspired artwork, not a physics simulation. ETQ follows real graph edges."
             "\n\nTemporary decoded audio uses about 660 MiB per hour, plus the MP4, in the destination folder."
             "\n\nUbuntu 24.04+: ./install-deps.sh\nThe application makes no network requests.")
         scroll = Gtk.ScrolledWindow()

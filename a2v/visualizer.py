@@ -15,7 +15,7 @@ BARS = 80
 BACKGROUND = (12, 18, 25)
 FOREGROUND = (95, 219, 211)
 STYLES = {'bars': 'Waveform bars', 'scope': 'Oscilloscope',
-          'qutrit-galaxy': 'Quantum Galaxy', 'gluball-knot': 'GLUBALL Knot'}
+          'qutrit-galaxy': 'Quantum Galaxy', 'gluball-knot': 'GLUBALL Knot', 'etq-graph-walk': 'ETQ Graph Walk'}
 PALETTE = ((94, 234, 242), (184, 152, 255), (255, 189, 112))
 
 
@@ -204,6 +204,12 @@ def render(pcm, style='bars', index=0):
     """640x360 RGB24. Frame n uses samples [1600n,1600(n+1)) and index n."""
     if style not in STYLES or index < 0:
         raise ValueError('Unknown visualizer style or negative frame index')
+    if style == 'etq-graph-walk':
+        from .etq import render_graph
+        weights = populations(pcm)
+        image = render_graph(weights, max(peaks(pcm)), index, PALETTE)
+        state_legend(image, weights)
+        return image.tobytes()
     if style == 'qutrit-galaxy':
         return galaxy(pcm,index).tobytes()
     if style == 'gluball-knot':

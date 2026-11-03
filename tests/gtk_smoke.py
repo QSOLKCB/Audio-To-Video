@@ -9,6 +9,7 @@ import traceback
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from a2v.gui import Adw, Application, GLib, Window
+from a2v.visualizer import STYLES
 from fixtures import audio, png
 
 
@@ -60,10 +61,11 @@ def main():
         assert not win.image_row.get_visible()
         assert win.visual.get_visible_child_name() == "waveform"
         assert win.style_row.get_visible()
-        win.style.set_selected(2)
-        win.track_title.set_text("Trent Slade — Quantum Flex")
+        etq_index = list(STYLES).index("etq-graph-walk")
+        win.style.set_selected(etq_index)
+        win.track_title.set_text("QSOL — ETQ Graph Walk")
         spin()
-        assert win.preview_key == (2, "Trent Slade — Quantum Flex")
+        assert win.preview_key == (etq_index, "QSOL — ETQ Graph Walk")
         screenshot("gtk-visualizer.png")
         win.resolution.set_selected(1)
         win.start()

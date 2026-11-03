@@ -179,6 +179,9 @@ def verify_output(path, pcm, job, frame_count, sample_count, cancel, progress):
                 if job.mode == "visualizer":
                     expected = reference_thumbnail(samples.read(SAMPLES * 4), job.style, count)
                     check_thumbnail(frame, expected, HEADER // 4 if job.title else 0)
+                    if job.style == "etq-graph-walk":
+                        from .etq import check_walkers
+                        check_walkers(frame, expected)
             except ValueError as exc:
                 raise RenderError(f"Video verification failed at frame {count}: {exc}") from exc
             count += 1
