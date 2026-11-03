@@ -6,8 +6,11 @@ A small native GTK application for making MP4 videos from music or spoken audio.
 Two modes:
 
 - **Still image:** one PNG or JPEG, fitted without cropping, stretching, or movement.
-- **Visualizer:** deterministic waveform bars drawn from the audio, with a visible
-  centre line during silence.
+- **Visualizer:** four deterministic styles: waveform bars, stereo oscilloscope,
+  **Quantum Galaxy** and **GLUBALL Knot**.
+
+Add an optional **Name – Track** title at the top in either mode.
+[Visual styles and GALAXY/GLUBALL references](docs/visualizers.md).
 
 MP3, M4A and WAV in. H.264 video + AAC audio in an MP4 out. Choose 1080p or 720p,
 both 16:9 at 30 fps. The whole audio file is used; video ends on the next complete
@@ -31,8 +34,8 @@ The application itself does not install anything or make network requests.
 It uses `/usr/bin/python3` so Ubuntu's GTK bindings work even with a virtualenv active.
 
 1. Choose your MP3, M4A, or WAV.
-2. Choose **Still image** and a PNG/JPEG, or select **Visualizer**.
-3. Check the destination and click **Create MP4**.
+2. Choose **Still image** and a PNG/JPEG, or select **Visualizer** and its style.
+3. Optionally enter your title, check the destination and click **Create MP4**.
 4. When validation finishes, click **Open video** to use your normal video player.
 
 Existing files are never overwritten. Cancellation, a failed encode, or failed
@@ -50,7 +53,7 @@ The CLI uses the same renderer and export checks as the GUI:
 ```sh
 ./audio2video doctor
 ./audio2video render "song.m4a" "song.mp4" --image "cover.png"
-./audio2video render "song.mp3" "waveform.mp4" --visualizer
+./audio2video render "song.mp3" "galaxy.mp4" --visualizer --style qutrit-galaxy --title "Name – Track"
 ./audio2video render "talk.wav" "talk.mp4" --visualizer --resolution 720p
 ```
 
@@ -67,9 +70,9 @@ the application:
 - Requires exactly one H.264/yuv420p video stream and one AAC audio stream, with
   the expected dimensions, frame rate and audio duration.
 - Decodes **every video frame**, checks its count, and, in visualizer mode, compares
-  it with a thumbnail calculated from the matching audio-sample window.
-- Rejects missing/blank waveform frames and material mismatches such as a frozen
-  waveform over changing audio. Lossy-codec tolerances are documented in the code.
+  it with a thumbnail calculated from the matching audio-sample window, style and frame index.
+- Rejects missing/blank visualizer frames and material mismatches such as a frozen
+  visualizer over changing audio. Titles get a separate presence/content check. Lossy-codec tolerances are documented in the code.
 - Decodes the audio stream to check for decoding failures.
 - Publishes the MP4 only after those checks pass.
 
@@ -83,11 +86,14 @@ It cannot certify how every third-party player or video-hosting service behaves.
 The audio is decoded once to 48 kHz stereo signed 16-bit PCM. Each video frame uses
 exactly 1,600 stereo sample pairs. Eighty time bins take the peak magnitude from
 either channel; opposite-phase stereo therefore cannot cancel the waveform.
-The raster uses integer arithmetic, fixed geometry, and a fixed palette. These are
-**time-domain waveform bars, not frequency-spectrum bins**. No wall-clock timing,
+Bars are **time-domain waveform bins, not frequency-spectrum bins**. The new
+[styles](docs/visualizers.md) use fixed angles and bounded indexed particles; Pillow
+draws the raster and glow. Quantum Galaxy and GLUBALL Knot map three broad audio
+bands into normalized artistic state weights. No wall-clock timing,
 randomness, graphics driver, or display capture influences the output.
 
-Identical decoded PCM produces identical source frames. Identical inputs and settings
+Identical decoded PCM, style, frame index, title, font and Pillow build produce
+identical source frames. Identical inputs and settings
 are tested for identical decoded frames and MP4 bytes on the same FFmpeg/libx264
 build. Byte-identical MP4s across codec versions, CPU architectures or distributions
 are **not** promised. Record `ffmpeg -version` when comparing exports.
@@ -105,7 +111,7 @@ destinations are not supported. Save locally, then copy the completed MP4 if nee
 
 ## Develop, verify, package
 
-Core runtime: Python 3.10+ and FFmpeg/FFprobe with libx264 and AAC.
+Core runtime: Python 3.10+, Pillow 10+, DejaVu Sans, and FFmpeg/FFprobe with libx264 and AAC.
 Desktop: PyGObject, GTK 4.10+, libadwaita 1.4+.
 
 ```sh
@@ -120,7 +126,7 @@ GSK_RENDERER=cairo GTK_A11Y=none xvfb-run -a -s '-screen 0 1280x1000x24' \
 
 CI runs real MP3/M4A/WAV encodes, PNG/JPEG exports, silence and opposite-phase stereo,
 partial final frames, corruption and cancellation cases, repeatability checks, deliberate
-blank/frozen/audio-only MP4 rejection, native GTK interaction and a packaged CLI export.
+blank/frozen/wrong-style/missing-title/audio-only MP4 rejection, native GTK interaction and a packaged CLI export.
 
 This repository is a fresh local implementation. The former reference README remains
 available only in Git history. The existing Apache-2.0 project licence is retained.

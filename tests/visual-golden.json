@@ -1,0 +1,293 @@
+{
+  "description": "Pre-OPT renderer RGB24 hashes on Pillow 10.2.0; deterministic fixtures, 640x360.",
+  "cases": [
+    {
+      "pcm": "silence",
+      "style": "bars",
+      "index": 0,
+      "sha256": "b6798c89700c80fe6ae8b76e70ddc93acf485179e9d99f8bb5cf699f239fab5f"
+    },
+    {
+      "pcm": "silence",
+      "style": "bars",
+      "index": 31,
+      "sha256": "b6798c89700c80fe6ae8b76e70ddc93acf485179e9d99f8bb5cf699f239fab5f"
+    },
+    {
+      "pcm": "silence",
+      "style": "bars",
+      "index": 90,
+      "sha256": "b6798c89700c80fe6ae8b76e70ddc93acf485179e9d99f8bb5cf699f239fab5f"
+    },
+    {
+      "pcm": "silence",
+      "style": "bars",
+      "index": 900000,
+      "sha256": "b6798c89700c80fe6ae8b76e70ddc93acf485179e9d99f8bb5cf699f239fab5f"
+    },
+    {
+      "pcm": "silence",
+      "style": "scope",
+      "index": 0,
+      "sha256": "72b528fc4379e26eb6b0f7ea887132e782462c6672889e4e6801662166fa6f64"
+    },
+    {
+      "pcm": "silence",
+      "style": "scope",
+      "index": 31,
+      "sha256": "72b528fc4379e26eb6b0f7ea887132e782462c6672889e4e6801662166fa6f64"
+    },
+    {
+      "pcm": "silence",
+      "style": "scope",
+      "index": 90,
+      "sha256": "72b528fc4379e26eb6b0f7ea887132e782462c6672889e4e6801662166fa6f64"
+    },
+    {
+      "pcm": "silence",
+      "style": "scope",
+      "index": 900000,
+      "sha256": "72b528fc4379e26eb6b0f7ea887132e782462c6672889e4e6801662166fa6f64"
+    },
+    {
+      "pcm": "silence",
+      "style": "qutrit-galaxy",
+      "index": 0,
+      "sha256": "47836d04111d7dabd977f6498bb443a48c3c0ac297fc127d4618df7fa39bc821"
+    },
+    {
+      "pcm": "silence",
+      "style": "qutrit-galaxy",
+      "index": 31,
+      "sha256": "0248ccb365e48c1898a8af0684a7b15790b7a48c4e08378f15c7a190eb5977a4"
+    },
+    {
+      "pcm": "silence",
+      "style": "qutrit-galaxy",
+      "index": 90,
+      "sha256": "af6c5ce4281a0dd6b721a9b891eebbaf344aa6cefac363bfc5a2e4f8cb583e89"
+    },
+    {
+      "pcm": "silence",
+      "style": "qutrit-galaxy",
+      "index": 900000,
+      "sha256": "47836d04111d7dabd977f6498bb443a48c3c0ac297fc127d4618df7fa39bc821"
+    },
+    {
+      "pcm": "silence",
+      "style": "gluball-knot",
+      "index": 0,
+      "sha256": "e39aa6c4aea019d4cafcf9e0703c69a89de95a570bc70bbf86b8f17b6b0b4edd"
+    },
+    {
+      "pcm": "silence",
+      "style": "gluball-knot",
+      "index": 31,
+      "sha256": "42005c70f48c85119851a3b35e523ae80745c440577a7fe5c524b5c035edc6c4"
+    },
+    {
+      "pcm": "silence",
+      "style": "gluball-knot",
+      "index": 90,
+      "sha256": "bf4de0428f977819a49c373b86f86402903a526ee875562155220758f3e2bc5c"
+    },
+    {
+      "pcm": "silence",
+      "style": "gluball-knot",
+      "index": 900000,
+      "sha256": "0081d42c0ac62186dc394297019651fccdbdf36cdd9f289f7cdbf637b5f911ce"
+    },
+    {
+      "pcm": "antiphase",
+      "style": "bars",
+      "index": 0,
+      "sha256": "8b0862858217d271e792d22f16993c046080c715f7bd40304e35588cc3ce1bbb"
+    },
+    {
+      "pcm": "antiphase",
+      "style": "bars",
+      "index": 31,
+      "sha256": "8b0862858217d271e792d22f16993c046080c715f7bd40304e35588cc3ce1bbb"
+    },
+    {
+      "pcm": "antiphase",
+      "style": "bars",
+      "index": 90,
+      "sha256": "8b0862858217d271e792d22f16993c046080c715f7bd40304e35588cc3ce1bbb"
+    },
+    {
+      "pcm": "antiphase",
+      "style": "bars",
+      "index": 900000,
+      "sha256": "8b0862858217d271e792d22f16993c046080c715f7bd40304e35588cc3ce1bbb"
+    },
+    {
+      "pcm": "antiphase",
+      "style": "scope",
+      "index": 0,
+      "sha256": "615b93d44935335a815e51955a7c3add929687813483af96adb6445ca84b5bea"
+    },
+    {
+      "pcm": "antiphase",
+      "style": "scope",
+      "index": 31,
+      "sha256": "615b93d44935335a815e51955a7c3add929687813483af96adb6445ca84b5bea"
+    },
+    {
+      "pcm": "antiphase",
+      "style": "scope",
+      "index": 90,
+      "sha256": "615b93d44935335a815e51955a7c3add929687813483af96adb6445ca84b5bea"
+    },
+    {
+      "pcm": "antiphase",
+      "style": "scope",
+      "index": 900000,
+      "sha256": "615b93d44935335a815e51955a7c3add929687813483af96adb6445ca84b5bea"
+    },
+    {
+      "pcm": "antiphase",
+      "style": "qutrit-galaxy",
+      "index": 0,
+      "sha256": "666b7dcdad7c2f3fb6ef5aa78e2614a14f86462035b7eee31f6caa7cb2bcc57d"
+    },
+    {
+      "pcm": "antiphase",
+      "style": "qutrit-galaxy",
+      "index": 31,
+      "sha256": "2b3e91eca7d24b3226cfe54dd0803d613be7b1cad105ea28b9bbbe606793eae7"
+    },
+    {
+      "pcm": "antiphase",
+      "style": "qutrit-galaxy",
+      "index": 90,
+      "sha256": "d78f1b1dcf359b4ebe291bfeff865a52f22acdb7987afccb32b70fdb0825d361"
+    },
+    {
+      "pcm": "antiphase",
+      "style": "qutrit-galaxy",
+      "index": 900000,
+      "sha256": "666b7dcdad7c2f3fb6ef5aa78e2614a14f86462035b7eee31f6caa7cb2bcc57d"
+    },
+    {
+      "pcm": "antiphase",
+      "style": "gluball-knot",
+      "index": 0,
+      "sha256": "3386ab97154115f65c504e7f012415a40d9cb62285145ad612d83c433541cbfb"
+    },
+    {
+      "pcm": "antiphase",
+      "style": "gluball-knot",
+      "index": 31,
+      "sha256": "32b55c3f804670f26910a653ada70b5693a6fa00bf6a0db81ab9094fdb45dcdd"
+    },
+    {
+      "pcm": "antiphase",
+      "style": "gluball-knot",
+      "index": 90,
+      "sha256": "83fb0bf3e9cbd38fde6e89ecc9706e72305a65b9818a07240de75ae697306feb"
+    },
+    {
+      "pcm": "antiphase",
+      "style": "gluball-knot",
+      "index": 900000,
+      "sha256": "6d6876623e1a55f96f9f62762a37082a57165b1ab1c2163a4478148524e41fb7"
+    },
+    {
+      "pcm": "ramp",
+      "style": "bars",
+      "index": 0,
+      "sha256": "c1064ba44445b75685f0485411673c4c3b606be879e091d0637d966d1cb9c575"
+    },
+    {
+      "pcm": "ramp",
+      "style": "bars",
+      "index": 31,
+      "sha256": "c1064ba44445b75685f0485411673c4c3b606be879e091d0637d966d1cb9c575"
+    },
+    {
+      "pcm": "ramp",
+      "style": "bars",
+      "index": 90,
+      "sha256": "c1064ba44445b75685f0485411673c4c3b606be879e091d0637d966d1cb9c575"
+    },
+    {
+      "pcm": "ramp",
+      "style": "bars",
+      "index": 900000,
+      "sha256": "c1064ba44445b75685f0485411673c4c3b606be879e091d0637d966d1cb9c575"
+    },
+    {
+      "pcm": "ramp",
+      "style": "scope",
+      "index": 0,
+      "sha256": "29e44e8cf80498c2dc3cbf7c4b45c18933d8607ff7811fb8296cb6e6f4aabde6"
+    },
+    {
+      "pcm": "ramp",
+      "style": "scope",
+      "index": 31,
+      "sha256": "29e44e8cf80498c2dc3cbf7c4b45c18933d8607ff7811fb8296cb6e6f4aabde6"
+    },
+    {
+      "pcm": "ramp",
+      "style": "scope",
+      "index": 90,
+      "sha256": "29e44e8cf80498c2dc3cbf7c4b45c18933d8607ff7811fb8296cb6e6f4aabde6"
+    },
+    {
+      "pcm": "ramp",
+      "style": "scope",
+      "index": 900000,
+      "sha256": "29e44e8cf80498c2dc3cbf7c4b45c18933d8607ff7811fb8296cb6e6f4aabde6"
+    },
+    {
+      "pcm": "ramp",
+      "style": "qutrit-galaxy",
+      "index": 0,
+      "sha256": "b14eb8f3f9d28d26d4f52032fe6f30600d05b5ca670432890f5d2bc5436ceb1e"
+    },
+    {
+      "pcm": "ramp",
+      "style": "qutrit-galaxy",
+      "index": 31,
+      "sha256": "68d6356259f22fe01a74240142b03063809b9196bcc56d8b8691f3f9a3501c87"
+    },
+    {
+      "pcm": "ramp",
+      "style": "qutrit-galaxy",
+      "index": 90,
+      "sha256": "ed50da75d1b62a17903ebeea1ef667c379d0058a46b45597877f057a6cdb5d0e"
+    },
+    {
+      "pcm": "ramp",
+      "style": "qutrit-galaxy",
+      "index": 900000,
+      "sha256": "b14eb8f3f9d28d26d4f52032fe6f30600d05b5ca670432890f5d2bc5436ceb1e"
+    },
+    {
+      "pcm": "ramp",
+      "style": "gluball-knot",
+      "index": 0,
+      "sha256": "a61675fef2acb460748464222a761b2832aa1d7c5bf5f1abca480b4f22fb159a"
+    },
+    {
+      "pcm": "ramp",
+      "style": "gluball-knot",
+      "index": 31,
+      "sha256": "17bce37939b50c5c145c4fc3af464cca84643a51a6811b3abf4ba12a0d5ba0e4"
+    },
+    {
+      "pcm": "ramp",
+      "style": "gluball-knot",
+      "index": 90,
+      "sha256": "96b94b212bd29bc80c603a7055001a9fd33804804dd1f3d5ed4c210773542b2d"
+    },
+    {
+      "pcm": "ramp",
+      "style": "gluball-knot",
+      "index": 900000,
+      "sha256": "24b7061a82e90c553ad4dece6214c32714f65ea524f7b62837c1a5450e32b96e"
+    }
+  ]
+}

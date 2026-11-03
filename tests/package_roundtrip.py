@@ -31,6 +31,6 @@ with tempfile.TemporaryDirectory(prefix="a2v package roundtrip ") as directory:
     source = audio(root / "relative audio.wav", .237)
     subprocess.run([str(app / "audio2video"), "--version"], check=True, cwd=root)
     subprocess.run([str(app / "audio2video"), "render", source.name, "result.mp4", "--visualizer",
-                    "--resolution", "720p"], check=True, cwd=root)
+                    "--resolution", "720p", "--style", "gluball-knot", "--title", "Package — local export"], check=True, cwd=root)
     assert len(decoded_frames(root / "result.mp4")) == 8
     print("Package roundtrip passed: checksums, reproducibility, executable launcher, relative paths, real MP4")

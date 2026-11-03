@@ -59,11 +59,18 @@ def main():
         assert win.mode == "visualizer"
         assert not win.image_row.get_visible()
         assert win.visual.get_visible_child_name() == "waveform"
+        assert win.style_row.get_visible()
+        win.style.set_selected(2)
+        win.track_title.set_text("Trent Slade — Quantum Flex")
+        spin()
+        assert win.preview_key == (2, "Trent Slade — Quantum Flex")
         screenshot("gtk-visualizer.png")
         win.resolution.set_selected(1)
         win.start()
         assert win.controller.busy
         assert not win.audio_button.get_sensitive()
+        assert not win.style.get_sensitive()
+        assert not win.track_title.get_sensitive()
         assert win.cancel_button.get_visible()
         deadline = time.monotonic() + 30
         while win.controller.busy and time.monotonic() < deadline:
@@ -83,6 +90,7 @@ def main():
 
         win.still_button.set_active(True)
         assert not win.open_button.get_visible()
+        assert not win.style_row.get_visible()
         win.set_output(root / "still.mp4")
         win.start()
         deadline = time.monotonic() + 30
