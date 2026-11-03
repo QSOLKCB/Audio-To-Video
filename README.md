@@ -6,12 +6,13 @@ A small native GTK application for making MP4 videos from music or spoken audio.
 Two modes:
 
 - **Still image:** one PNG or JPEG, fitted without cropping, stretching, or movement.
-- **Visualizer:** four deterministic styles: waveform bars, stereo oscilloscope,
-  **Quantum Galaxy** and **GLUBALL Knot**.
+- **Visualizer:** five deterministic styles: waveform bars, stereo oscilloscope,
+  **Quantum Galaxy**, **GLUBALL Knot** and **ETQ Graph Walk**.
 
 Add an optional **Name – Track** title at the top in either mode.
 [Visual styles and GALAXY/GLUBALL references](docs/visualizers.md) ·
-[OPT optimizations and measured results](docs/optimization.md).
+[OPT optimizations and measured results](docs/optimization.md) ·
+[ETQ Graph Walk and VIZ provenance](docs/etq.md).
 
 MP3, M4A and WAV in. H.264 video + AAC audio in an MP4 out. Choose 1080p or 720p,
 both 16:9 at 30 fps. The whole audio file is used; video ends on the next complete
@@ -20,7 +21,9 @@ cloud service, browser runtime, pip environment, Node, or container is required.
 
 [Download the tested Linux preview](packages/README.md) · [GTK screenshot](docs/gtk-preview.png)
 
-![Quantum Galaxy and GLUBALL Knot, captured from verified MP4 exports](docs/visualizer-preview.png)
+![ETQ Graph Walk captured from a verified MP4 export](docs/etq-preview.png)
+
+[Quantum Galaxy and GLUBALL Knot preview](docs/visualizer-preview.png)
 
 ## Run on Ubuntu 24.04 or newer
 
@@ -57,7 +60,7 @@ The CLI uses the same renderer and export checks as the GUI:
 ./audio2video doctor
 ./audio2video render "song.m4a" "song.mp4" --image "cover.png"
 ./audio2video render "song.mp3" "galaxy.mp4" --visualizer --style qutrit-galaxy --title "Name – Track"
-./audio2video render "talk.wav" "talk.mp4" --visualizer --resolution 720p
+./audio2video render "talk.wav" "talk.mp4" --visualizer --style etq-graph-walk --resolution 720p
 ```
 
 Relative input/output paths are relative to your current directory, including when
@@ -132,4 +135,5 @@ partial final frames, corruption and cancellation cases, repeatability checks, d
 blank/frozen/wrong-style/missing-title/audio-only MP4 rejection, native GTK interaction and a packaged CLI export.
 
 This repository is a fresh local implementation. The former reference README remains
-available only in Git history. The existing Apache-2.0 project licence is retained.
+available only in Git history. The existing Apache-2.0 project licence is retained;
+`a2v/etq.py` is an MPL-2.0 adaptation from VIZ, with its licence in `LICENSES/`.

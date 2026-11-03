@@ -28,9 +28,11 @@ with tempfile.TemporaryDirectory(prefix="a2v package roundtrip ") as directory:
     assert (app / "audio2video").stat().st_mode & 0o111
     assert (app / "install-deps.sh").stat().st_mode & 0o111
     assert not list(app.rglob("__pycache__"))
+    assert (app / "LICENSES/MPL-2.0.txt").is_file()
+    assert "SPDX-License-Identifier: MPL-2.0" in (app / "a2v/etq.py").read_text()
     source = audio(root / "relative audio.wav", .237)
     subprocess.run([str(app / "audio2video"), "--version"], check=True, cwd=root)
     subprocess.run([str(app / "audio2video"), "render", source.name, "result.mp4", "--visualizer",
-                    "--resolution", "720p", "--style", "gluball-knot", "--title", "Package — local export"], check=True, cwd=root)
+                    "--resolution", "720p", "--style", "etq-graph-walk", "--title", "Package — local export"], check=True, cwd=root)
     assert len(decoded_frames(root / "result.mp4")) == 8
     print("Package roundtrip passed: checksums, reproducibility, executable launcher, relative paths, real MP4")

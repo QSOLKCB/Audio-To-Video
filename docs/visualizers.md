@@ -1,7 +1,8 @@
 # Visual styles and their sources
 
 Version 0.2 adds **Quantum Galaxy**, **GLUBALL Knot** and **Oscilloscope** to the
-original waveform bars. Choose the style in GTK or with `--style`. The optional
+original waveform bars. Version 0.3 adds **ETQ Graph Walk**, using the exact finite
+graph from VIZ ([model and receiver details](etq.md)). Choose the style in GTK or with `--style`. The optional
 single-line title applies to still images and every visualizer.
 
 | Style / CLI value | Motion and audio response |
@@ -10,6 +11,7 @@ single-line title applies to still images and every visualizer.
 | Oscilloscope / `scope` | Separate cyan and violet stereo traces. Silence retains both rails. |
 | Quantum Galaxy / `qutrit-galaxy` | Three spiral arms, indexed dust and travelling state packets. Three audio-band energies set their populations and brightness; level changes packet size. |
 | GLUBALL Knot / `gluball-knot` | Nine luminous filaments grouped into three state ribbons on a (2,3) torus knot. Audio controls thickness and brightness; phase packets travel around the knot. |
+| ETQ Graph Walk / `etq-graph-walk` | Three luminous walkers follow real edges of the 303-state lifted graph. Audio changes trail brightness and packet size; model geometry stays fixed. |
 
 The three populations are nonnegative integer weights summing to 1,000,000.
 They come from squared energies of two simple first-order low passes and their
@@ -39,8 +41,9 @@ silence. There is no wall clock, mutable random generator, GPU or camera control
   independently, with decorative travelling filaments and a fixed projection.
   This is not GLUBALL's frozen geometry buffer or its topology/colour contract.
 
-No donor implementation files are copied or required at runtime. Source identities
-above are fixed; this app stays a small independent Python implementation.
+The Galaxy and GLUBALL styles import no donor implementation files. The separate
+[ETQ module](etq.md) ports VIZ's finite construction with MPL-2.0 notices. All source
+identities are fixed; no donor repository is needed at runtime.
 
 ## Text and export checks
 
