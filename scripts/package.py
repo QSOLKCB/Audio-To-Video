@@ -29,7 +29,7 @@ def package(ref, output):
         mode, kind, sha = meta.split()
         path = raw_path.decode()
         if kind != b"blob" or not (path in ("audio2video", "install-deps.sh", "README.md", "LICENSE")
-            or path.startswith(("a2v/", "tests/", "scripts/", "docs/", "LICENSES/"))):
+            or path.startswith(("a2v/", "tests/", "scripts/", "docs/", "LICENSES/", "Formula/"))):
             continue
         if mode not in (b"100644", b"100755"):
             raise ValueError("Only regular files can be packaged: " + path)

@@ -2,12 +2,13 @@
 
 **Audio in. Video out. All on your computer.**
 
-A small native GTK application for making MP4 videos from music or spoken audio.
+A small native desktop application for making MP4 videos from music or spoken audio.
 Two modes:
 
 - **Still image:** one PNG or JPEG, fitted without cropping, stretching, or movement.
-- **Visualizer:** five deterministic styles: waveform bars, stereo oscilloscope,
-  **Quantum Galaxy**, **GLUBALL Knot** and **ETQ Graph Walk**.
+- **Visualizer:** eight deterministic styles: waveform bars, stereo oscilloscope,
+  **Quantum Galaxy**, **GLUBALL Knot**, **ETQ Graph Walk**, **Triggered oscilloscope**,
+  **Stereo vectorscope** and **Radial oscilloscope**.
 
 Add an optional **Name – Track** title at the top in either mode.
 [Visual styles and GALAXY/GLUBALL references](docs/visualizers.md) ·
@@ -17,13 +18,13 @@ Add an optional **Name – Track** title at the top in either mode.
 MP3, M4A and WAV in. H.264 video + AAC audio in an MP4 out. Choose 1080p or 720p,
 both 16:9 at 30 fps. The whole audio file is used; video ends on the next complete
 frame, at most 1/30 second later. No account, uploads, advertising, model downloads,
-cloud service, browser runtime, pip environment, Node, or container is required.
+cloud service, browser runtime, Node, or container is required.
 
-[Download the tested Linux preview](packages/README.md) · [GTK screenshot](docs/gtk-preview.png)
+[Windows/macOS bundles and Homebrew](docs/portable.md) · [Earlier Linux previews](packages/README.md) · [GTK screenshot](docs/gtk-preview.png)
 
 ![ETQ Graph Walk captured from a verified MP4 export](docs/etq-preview.png)
 
-[Quantum Galaxy and GLUBALL Knot preview](docs/visualizer-preview.png)
+[Oscilloscope previews](docs/scopes-preview.png) · [Quantum Galaxy and GLUBALL Knot preview](docs/visualizer-preview.png)
 
 ## Run on Ubuntu 24.04 or newer
 
@@ -46,7 +47,7 @@ It uses `/usr/bin/python3` so Ubuntu's GTK bindings work even with a virtualenv 
 
 Existing files are never overwritten. Cancellation, a failed encode, or failed
 verification cleans up the temporary files. Closing the window cancels active work
-and waits for FFmpeg to stop. Full error text is available under **Details**.
+and waits for FFmpeg to stop. Both desktops show elapsed export time. Full error text is available under **Details**.
 
 The UI follows the simple native-desktop approach in
 [M4A2TXT](https://github.com/QSOLKCB/M4A2TXT/pull/1); this is an independent implementation
@@ -61,6 +62,8 @@ The CLI uses the same renderer and export checks as the GUI:
 ./audio2video render "song.m4a" "song.mp4" --image "cover.png"
 ./audio2video render "song.mp3" "galaxy.mp4" --visualizer --style qutrit-galaxy --title "Name – Track"
 ./audio2video render "talk.wav" "talk.mp4" --visualizer --style etq-graph-walk --resolution 720p
+./audio2video render "stereo.wav" "scope.mp4" --visualizer --style trigger-scope --resolution 720p
+./audio2video render "stereo.wav" "phase.mp4" --visualizer --style vectorscope
 ```
 
 Relative input/output paths are relative to your current directory, including when
@@ -112,13 +115,15 @@ and cancellation; a power loss or forced kill may leave an `.audio2video-*` fold
 can be removed when no export is running.
 
 The destination must be an existing local folder on a filesystem supporting hard links
-(for example ext4 or Btrfs). Atomic, no-overwrite publication uses a hard link; FAT/exFAT
+(for example NTFS, APFS, ext4 or Btrfs). Atomic, no-overwrite publication uses a hard link; FAT/exFAT
 destinations are not supported. Save locally, then copy the completed MP4 if needed.
 
 ## Develop, verify, package
 
-Core runtime: Python 3.10+, Pillow 10+, DejaVu Sans, and FFmpeg/FFprobe with libx264 and AAC.
-Desktop: PyGObject, GTK 4.10+, libadwaita 1.4+.
+Core runtime: Python 3.10+, Pillow 10+, the bundled DejaVu Sans font, and FFmpeg/FFprobe with libx264 and AAC.
+Linux desktop: PyGObject, GTK 4.10+, libadwaita 1.4+. Portable desktop: standard-library Tcl/Tk.
+The native CI builds include the runtime and media dependencies; Homebrew installs them explicitly.
+See [builds, installation, shortcuts and platform limits](docs/portable.md).
 
 ```sh
 /usr/bin/python3 -m unittest discover -s tests -v
@@ -135,5 +140,6 @@ partial final frames, corruption and cancellation cases, repeatability checks, d
 blank/frozen/wrong-style/missing-title/audio-only MP4 rejection, native GTK interaction and a packaged CLI export.
 
 This repository is a fresh local implementation. The former reference README remains
-available only in Git history. The existing Apache-2.0 project licence is retained;
+available only in Git history. The bundled DejaVu font includes its licence in `LICENSES/DejaVu.txt`.
+The existing Apache-2.0 project licence is retained;
 `a2v/etq.py` is an MPL-2.0 adaptation from VIZ, with its licence in `LICENSES/`.

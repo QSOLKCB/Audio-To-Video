@@ -15,7 +15,9 @@ BARS = 80
 BACKGROUND = (12, 18, 25)
 FOREGROUND = (95, 219, 211)
 STYLES = {'bars': 'Waveform bars', 'scope': 'Oscilloscope',
-          'qutrit-galaxy': 'Quantum Galaxy', 'gluball-knot': 'GLUBALL Knot', 'etq-graph-walk': 'ETQ Graph Walk'}
+          'qutrit-galaxy': 'Quantum Galaxy', 'gluball-knot': 'GLUBALL Knot', 'etq-graph-walk': 'ETQ Graph Walk',
+          'trigger-scope': 'Triggered oscilloscope', 'vectorscope': 'Stereo vectorscope',
+          'radial-scope': 'Radial oscilloscope'}
 PALETTE = ((94, 234, 242), (184, 152, 255), (255, 189, 112))
 
 
@@ -46,8 +48,14 @@ def populations(pcm):
         channel = i & 1
         low[channel] += (sample - low[channel]) // 32
         mid[channel] += (sample - mid[channel]) // 4
-        for band, value in enumerate((low[channel], mid[channel]-low[channel], sample-mid[channel])):
-            energy[band] += value * value
+        # Same integer operations as the scalar loop, without 3 tuple/iterator
+        # dispatches for each sample. Keep channel history and rounding intact.
+        bass = low[channel]
+        middle = mid[channel] - bass
+        high = sample - mid[channel]
+        energy[0] += bass * bass
+        energy[1] += middle * middle
+        energy[2] += high * high
     total = sum(energy)
     if not total:
         return (333334, 333333, 333333)
@@ -101,6 +109,18 @@ def state_legend(image, weights):
         draw.line((x, 337, x+max(2, weight*112//1000000), 337), fill=color, width=3)
 
 
+@lru_cache(maxsize=3)
+def galaxy_basis(state):
+    result = []
+    for i in range(1, 361):
+        code = mix(state*1024+i)
+        spread = 2+i//20
+        result.append((12+i*202//360, i*TURN//240,
+                       code%(2*spread+1)-spread, (code >> 9)%(2*spread+1)-spread,
+                       1+int((code >> 20)%19 == 0)))
+    return tuple(result)
+
+
 def galaxy(pcm, index):
     weights = populations(pcm)
     volume = max(peaks(pcm))
@@ -112,18 +132,13 @@ def galaxy(pcm, index):
         arm = phase + state*TURN//3
         strength = isqrt(weights[state]*1000000)
         points = []
-        for i in range(1, 361):
-            radius = 12 + i*202//360
-            angle = arm + i*TURN//240
+        light = 75 + strength*120//1000000 + volume*45//32768
+        dust = tuple(c*light//255 for c in color)
+        for radius, offset, dx, dy, size in galaxy_basis(state):
+            angle = arm + offset
             x = 320 + cosine(angle)*radius//16384
             y = 186 + sine(angle)*radius*46//(16384*100)
             points.append((x, y))
-            code = mix(state*1024 + i)
-            spread = 2 + i//20
-            dx, dy = (code % (2*spread+1))-spread, ((code >> 9) % (2*spread+1))-spread
-            light = 75 + strength*120//1000000 + volume*45//32768
-            dust = tuple(c*light//255 for c in color)
-            size = 1 + int((code >> 20) % 19 == 0)
             draw.ellipse((x+dx-size,y+dy-size,x+dx+size,y+dy+size), fill=dust)
         draw.line(points, fill=tuple(c*(100+strength*140//1000000)//255 for c in color), width=2)
         # Bright moving state packet; its size/brightness follows population.
@@ -161,11 +176,14 @@ def knot(pcm, index):
     for state, color in enumerate(PALETTE):
         colors = ribbon_colors(color)
         base_brightness = 110 + isqrt(weights[state]*1000000)*65//1000000
+        volume_radius = 44 + volume*10//32768
+        travel_phase = index*7 + state*341
         for strand in (-1, 0, 1):
             points = []
+            tube_phase = state*TURN//3 + strand*TURN//18 + index*TURN//300
             for t, cos3, sin3, cos2, sin2 in knot_basis():
-                v = state*TURN//3 + strand*TURN//18 + index*TURN//300 + t*5
-                minor = 44 + volume*10//32768 + cosine(v)*13//16384
+                v = tube_phase + t*5
+                minor = volume_radius + cosine(v)*13//16384
                 radial = 91 + minor*cos3//16384
                 x = radial*cos2//16384
                 y = radial*sin2//16384
@@ -174,7 +192,7 @@ def knot(pcm, index):
                 sx, sy, depth = 320+x*6//5, 187+(y*7//10-z)*4//5, y+z
                 points.append((sx, sy, depth))
             for i, (a,b) in enumerate(zip(points, points[1:])):
-                travel = (i*1024//512 - index*7 - state*341) % 1024
+                travel = (i*1024//512 - travel_phase) % 1024
                 brightness = base_brightness + max(0, 75-abs(travel-512))
                 if strand:
                     brightness = brightness*3//5
@@ -216,13 +234,18 @@ def render(pcm, style='bars', index=0):
         return knot(pcm,index).tobytes()
     if style == 'scope':
         return scope(pcm).tobytes()
-    frame = bytearray(bytes(BACKGROUND) * (WIDTH * HEIGHT))
+    if style in ('trigger-scope', 'vectorscope', 'radial-scope'):
+        from .scopes import render_scope
+        return render_scope(pcm, style).tobytes()
+    frame = Image.new('RGB', (WIDTH, HEIGHT), BACKGROUND)
+    draw = ImageDraw.Draw(frame)
     for y in (60, 120, 240, 300):
-        rectangle(frame, 40, y, 560, 1, (21, 32, 42))
+        draw.line((40, y, 599, y), fill=(21, 32, 42))
     for i, value in enumerate(peaks(pcm)):
         half = 3 + value * 116 // 32768
-        rectangle(frame, 40+i*7, HEIGHT//2-half, 5, half*2, FOREGROUND)
-    return bytes(frame)
+        x = 40 + i * 7
+        draw.rectangle((x, HEIGHT//2-half, x+4, HEIGHT//2+half-1), fill=FOREGROUND)
+    return frame.tobytes()
 
 
 def reference_thumbnail(pcm, style='bars', index=0):

@@ -1,13 +1,13 @@
 """Literal text rasterization: no shell, FFmpeg expression, or markup expansion."""
 from functools import lru_cache
-from pathlib import Path
 import unicodedata
 
 from PIL import Image, ImageChops, ImageDraw, ImageFont
 
 from .process import RenderError
+from .runtime import font_path
 
-FONT = Path('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf')
+FONT = font_path()
 HEADER = 56  # Source pixels; exactly 14 verification thumbnail rows.
 COLOR = (12, 18, 25)
 
@@ -28,7 +28,7 @@ def title_image(text, width):
     if not text:
         return image
     if not FONT.is_file():
-        raise RenderError('Title font is missing. Run ./install-deps.sh (fonts-dejavu-core).')
+        raise RenderError('Bundled title font is missing. Reinstall Audio to Video.')
     draw = ImageDraw.Draw(image)
     for size in range(22 * scale, 9 * scale, -1):
         font = ImageFont.truetype(str(FONT), size, layout_engine=ImageFont.Layout.BASIC)

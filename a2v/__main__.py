@@ -1,5 +1,6 @@
-"""CLI and lazy GTK launcher; headless exports do not import GTK."""
+"""CLI and lazy desktop launchers; headless exports import no GUI toolkit."""
 import argparse
+import os
 from pathlib import Path
 import signal
 import sys
@@ -15,7 +16,10 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description="Local audio + still image or deterministic visualizer → MP4")
     parser.add_argument("--version", action="version", version=__version__)
     commands = parser.add_subparsers(dest="command")
-    commands.add_parser("doctor", help="check the installed local media tools")
+    doctor = commands.add_parser("doctor", help="check the installed local media tools")
+    doctor.add_argument('--gui', action='store_true', help='also check the portable desktop and bundled font')
+    gui = commands.add_parser('gui', help='open the desktop app')
+    gui.add_argument('--backend', choices=('gtk', 'tk'), default=None)
     export = commands.add_parser("render", help="export without opening GTK")
     export.add_argument("audio", type=Path, help="MP3, M4A or WAV")
     export.add_argument("output", type=Path, help="new .mp4 file (never overwritten)")
@@ -28,14 +32,33 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if args.command == "doctor":
         missing = dependencies()
+        if args.gui:
+            try:
+                from .tk_gui import Window
+                import tkinter as tk
+                from .title import title_image
+                title_image('Desktop check', 640)
+                root = tk.Tk()
+                try:
+                    root.withdraw()
+                    Window(root)
+                    root.update_idletasks()
+                finally:
+                    root.destroy()
+            except Exception as exc:
+                missing.append(f'portable desktop: {exc}')
         print("Missing: " + ", ".join(missing) if missing else "FFmpeg and FFprobe found. Run a short export to check your codecs.")
         return int(bool(missing))
-    if args.command is None:
+    if args.command in (None, 'gui'):
+        backend = getattr(args, 'backend', None) or os.environ.get('A2V_GUI_BACKEND') or ('tk' if sys.platform in ('win32', 'darwin') else 'gtk')
         try:
-            from .gui import launch
+            if backend == 'tk':
+                from .tk_gui import launch
+            else:
+                from .gui import launch
             return launch()
-        except (ImportError, ValueError, RuntimeError) as exc:
-            print(f"Cannot open GTK: {exc}\nRun ./install-deps.sh on Ubuntu 24.04+.", file=sys.stderr)
+        except Exception as exc:
+            print(f"Cannot open {backend} desktop: {exc}\nSee docs/portable.md; CLI render is also available.", file=sys.stderr)
             return 1
     cancel = threading.Event()
     previous = {s: signal.signal(s, lambda *_: cancel.set()) for s in (signal.SIGINT, signal.SIGTERM)}

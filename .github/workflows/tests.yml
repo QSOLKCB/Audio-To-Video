@@ -34,7 +34,7 @@ jobs:
           mkdir packaged
           tar -xzf dist/Audio-To-Video-*-linux.tar.gz -C packaged
       - name: Packaged native GTK interaction and real exports
-        working-directory: packaged/Audio-To-Video-0.3.0-preview
+        working-directory: packaged/Audio-To-Video-1.1.0
         env:
           GSK_RENDERER: cairo
           GTK_A11Y: none

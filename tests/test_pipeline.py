@@ -138,9 +138,10 @@ class PipelineTests(unittest.TestCase):
         with self.assertRaises(RenderError):
             validate(self.job(mode="still"))
         fifo = self.root / "fifo.wav"
-        os.mkfifo(fifo)
-        with self.assertRaises(RenderError):
-            validate(Job(fifo, self.root / "out.mp4"))
+        if hasattr(os, "mkfifo"):
+            os.mkfifo(fifo)
+            with self.assertRaises(RenderError):
+                validate(Job(fifo, self.root / "out.mp4"))
         wrong = self.root / "song.ogg"
         wrong.write_bytes(self.source.read_bytes())
         with self.assertRaises(RenderError):

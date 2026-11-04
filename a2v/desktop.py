@@ -1,9 +1,22 @@
 """Small GTK-independent worker controller."""
+import os
+from pathlib import Path
+import time
 import queue
 import threading
 
 from .core import convert
 from .process import Cancelled
+
+
+def next_output(audio):
+    """Suggest a free name, including broken symlinks; publication still checks."""
+    audio = Path(audio)
+    candidate, index = audio.with_suffix('.mp4'), 1
+    while os.path.lexists(candidate):
+        candidate = audio.with_name(f'{audio.stem}-{index}.mp4')
+        index += 1
+    return candidate
 
 
 class Controller:
@@ -16,14 +29,23 @@ class Controller:
         self.error = ""
         self.status = "Choose an audio file to begin."
         self.fraction = 0.0
+        self.started = self.finished = None
 
     @property
     def busy(self):
         return self.worker is not None
 
+    @property
+    def elapsed_text(self):
+        if self.started is None:
+            return ''
+        seconds = int((self.finished if self.finished is not None else time.monotonic()) - self.started)
+        return f'Elapsed {seconds//60:02d}:{seconds%60:02d}'
+
     def start(self, job):
         if self.busy:
             return False
+        self.started, self.finished = time.monotonic(), None
         self.cancel.clear()
         self.result, self.error = None, ""
         self.status, self.fraction = "Starting…", 0.0
@@ -72,6 +94,7 @@ class Controller:
                 self.status = "Could not create the video."
                 self.fraction = 0.0
             elif event[0] == "done":
+                self.finished = time.monotonic()
                 self.worker.join()
                 self.worker = None
         return changed
