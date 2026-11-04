@@ -69,3 +69,24 @@ These are lossy-codec tolerance checks at 160x90, not full-resolution equality.
 Subpixel motion and changes below the tolerance are not certified. Reproducibility
 requires the same decoded PCM, style, frame index, title, font, Pillow and codec
 builds. Byte identity across platforms or library versions is not promised.
+
+
+## Oscilloscope additions (1.1)
+
+| Style / CLI name | What it displays |
+| --- | --- |
+| Triggered oscilloscope / `trigger-scope` | Two channel traces on a graticule, aligned to the stronger channel's first rising zero crossing. Both traces share the trigger, preserving stereo phase. The visible sweep spans 800 samples (16.7 ms). |
+| Stereo vectorscope / `vectorscope` | Mid/side projection: horizontal L−R, vertical L+R. In-phase mono is vertical; opposite-phase stereo is horizontal. Silence is a visible point. |
+| Radial oscilloscope / `radial-scope` | Two concentric channel traces, one 1,600-pair audio window per circle. Both channel signals remain separate. |
+
+These are sample-domain displays, not calibrated measurement instruments or FFT
+spectra. Triggering stays inside each frame's own 1,600 stereo pairs; silence/DC
+falls back to offset zero. Partial windows are zero-padded. No preceding frame,
+wall clock or random state is required. A cached immutable grid and radial-angle
+table bound setup work; bright traces remain visible after codec thumbnail sampling.
+
+All three use the same full-frame decode and sample-derived verification as the
+existing styles. Tests include real 720p/1080p exports, repeatability, silence,
+opposite-phase stereo, shared trigger alignment, partial frames and rejection of
+blank, frozen or wrong-style encodes. Verification retains the existing documented
+lossy-codec tolerance; it is not a claim that every one-pixel change is detected.

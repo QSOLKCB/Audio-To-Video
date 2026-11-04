@@ -9,7 +9,7 @@ from gi.repository import Adw, Gdk, Gio, GLib, Gtk, Pango
 
 from . import __version__
 from .core import AUDIO_FORMATS, IMAGE_FORMATS, Job, dependencies, validate
-from .desktop import Controller
+from .desktop import Controller, next_output
 from .process import RenderError
 from .visualizer import WIDTH, HEIGHT, STYLES, render
 from .title import normalize_title, title_image
@@ -136,6 +136,8 @@ class Window(Adw.ApplicationWindow):
         bottom.append(self.progress)
         self.status = label(self.controller.status)
         bottom.append(self.status)
+        self.elapsed = label("", "caption")
+        bottom.append(self.elapsed)
         actions = Gtk.Box(spacing=10)
         self.open_button = button("Open video", self.open_video)
         actions.append(self.open_button)
@@ -265,13 +267,7 @@ class Window(Adw.ApplicationWindow):
 
     def set_audio(self, path):
         self.audio = path
-        # Suggest a new filename; choosing audio never overwrites an old result.
-        candidate = path.with_suffix(".mp4")
-        index = 1
-        while candidate.exists() or candidate.is_symlink():
-            candidate = path.with_name(f"{path.stem}-{index}.mp4")
-            index += 1
-        self.output = candidate
+        self.output = next_output(path)
         self.selection_changed()
 
     def choose_image(self):
@@ -306,6 +302,7 @@ class Window(Adw.ApplicationWindow):
         self.refresh()
 
     def poll(self):
+        self.elapsed.set_text(self.controller.elapsed_text)
         if self.controller.drain():
             self.refresh()
             if self.controller.error:

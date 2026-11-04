@@ -1,0 +1,77 @@
+name: Native portable builds
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  portable:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, macos-15, macos-15-intel]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12.10'
+      - name: Install build tooling
+        run: python -m pip install uv==0.9.5
+      - name: Fetch pinned Windows media tools
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $url = 'https://github.com/GyanD/codexffmpeg/releases/download/8.0.1/ffmpeg-8.0.1-essentials_build.zip'
+          Invoke-WebRequest $url -OutFile "$env:RUNNER_TEMP/ffmpeg.zip"
+          $hash = (Get-FileHash "$env:RUNNER_TEMP/ffmpeg.zip" -Algorithm SHA256).Hash
+          if ($hash -ne 'E2AAEAA0FDBC397D4794828086424D4AAA2102CEF1FB6874F6FFD29C0B88B673') { throw 'FFmpeg archive checksum mismatch' }
+          Expand-Archive "$env:RUNNER_TEMP/ffmpeg.zip" "$env:RUNNER_TEMP/media"
+          $base = "$env:RUNNER_TEMP/media/ffmpeg-8.0.1-essentials_build"
+          "A2V_FFMPEG_DIR=$base/bin" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "$base/bin" | Out-File $env:GITHUB_PATH -Encoding utf8 -Append
+          New-Item -ItemType Directory -Path notices
+          Copy-Item "$base/LICENSE" notices
+          Copy-Item "$base/README.txt" notices
+          "Archive: $url`nSHA256: $hash`nSource: https://github.com/GyanD/codexffmpeg/releases/tag/8.0.1" | Set-Content notices/BUILD.txt
+      - name: Install macOS media tools and capture provenance
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          brew install ffmpeg
+          printf 'A2V_FFMPEG_DIR=%s/bin\n' "$(brew --prefix ffmpeg)" >> "$GITHUB_ENV"
+          python scripts/collect_brew_notices.py notices
+      - name: Core tests on the native platform
+        run: uv run --no-project --python 3.12.10 --with pillow==10.4.0 python -m unittest discover -s tests -v
+      - name: Portable desktop interaction and real exports
+        run: uv run --no-project --python 3.12.10 --with pillow==10.4.0 python tests/tk_smoke.py
+      - name: Build self-contained executable or app
+        shell: bash
+        run: uv run --no-project --python 3.12.10 --with pillow==10.4.0 --with pyinstaller==6.16.0 python scripts/build_portable.py --ffmpeg-dir "$A2V_FFMPEG_DIR" --notices notices
+      - name: Check frozen bundles without external tools on PATH
+        shell: bash
+        run: |
+          for bundle in dist/Audio-To-Video-*/; do
+            python scripts/smoke_portable.py "$bundle" --gui
+          done
+      - name: Test Homebrew formula against this exact source
+        if: runner.os == 'macOS' && matrix.os == 'macos-15'
+        run: python scripts/test_homebrew.py
+      - name: Preserve verified native bundles
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: audio2video-${{ matrix.os }}
+          path: |
+            dist/*.zip
+            dist/*.sha256
+          if-no-files-found: error
+          compression-level: 0

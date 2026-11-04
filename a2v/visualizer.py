@@ -15,7 +15,9 @@ BARS = 80
 BACKGROUND = (12, 18, 25)
 FOREGROUND = (95, 219, 211)
 STYLES = {'bars': 'Waveform bars', 'scope': 'Oscilloscope',
-          'qutrit-galaxy': 'Quantum Galaxy', 'gluball-knot': 'GLUBALL Knot', 'etq-graph-walk': 'ETQ Graph Walk'}
+          'qutrit-galaxy': 'Quantum Galaxy', 'gluball-knot': 'GLUBALL Knot', 'etq-graph-walk': 'ETQ Graph Walk',
+          'trigger-scope': 'Triggered oscilloscope', 'vectorscope': 'Stereo vectorscope',
+          'radial-scope': 'Radial oscilloscope'}
 PALETTE = ((94, 234, 242), (184, 152, 255), (255, 189, 112))
 
 
@@ -46,8 +48,14 @@ def populations(pcm):
         channel = i & 1
         low[channel] += (sample - low[channel]) // 32
         mid[channel] += (sample - mid[channel]) // 4
-        for band, value in enumerate((low[channel], mid[channel]-low[channel], sample-mid[channel])):
-            energy[band] += value * value
+        # Same integer operations as the scalar loop, without 3 tuple/iterator
+        # dispatches for each sample. Keep channel history and rounding intact.
+        bass = low[channel]
+        middle = mid[channel] - bass
+        high = sample - mid[channel]
+        energy[0] += bass * bass
+        energy[1] += middle * middle
+        energy[2] += high * high
     total = sum(energy)
     if not total:
         return (333334, 333333, 333333)
@@ -216,13 +224,18 @@ def render(pcm, style='bars', index=0):
         return knot(pcm,index).tobytes()
     if style == 'scope':
         return scope(pcm).tobytes()
-    frame = bytearray(bytes(BACKGROUND) * (WIDTH * HEIGHT))
+    if style in ('trigger-scope', 'vectorscope', 'radial-scope'):
+        from .scopes import render_scope
+        return render_scope(pcm, style).tobytes()
+    frame = Image.new('RGB', (WIDTH, HEIGHT), BACKGROUND)
+    draw = ImageDraw.Draw(frame)
     for y in (60, 120, 240, 300):
-        rectangle(frame, 40, y, 560, 1, (21, 32, 42))
+        draw.line((40, y, 599, y), fill=(21, 32, 42))
     for i, value in enumerate(peaks(pcm)):
         half = 3 + value * 116 // 32768
-        rectangle(frame, 40+i*7, HEIGHT//2-half, 5, half*2, FOREGROUND)
-    return bytes(frame)
+        x = 40 + i * 7
+        draw.rectangle((x, HEIGHT//2-half, x+4, HEIGHT//2+half-1), fill=FOREGROUND)
+    return frame.tobytes()
 
 
 def reference_thumbnail(pcm, style='bars', index=0):

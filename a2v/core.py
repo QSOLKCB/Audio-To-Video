@@ -4,12 +4,12 @@ import json
 import math
 import os
 from pathlib import Path
-import shutil
 import tempfile
 import threading
 
 from .process import Cancelled, RenderError, capture, checkpoint, child, read_exact, run, write_frame
 from .visualizer import FPS, HEIGHT, RATE, SAMPLES, WIDTH, STYLES, check_thumbnail, reference_thumbnail, render
+from .runtime import tool_path
 from .title import HEADER, check_title, normalize_title, prepare_title, title_image
 
 AUDIO_FORMATS = {".mp3": "mp3", ".m4a": "mov", ".wav": "wav"}
@@ -37,7 +37,7 @@ class Result:
 
 
 def dependencies():
-    return [name for name in ("ffmpeg", "ffprobe") if not shutil.which(name)]
+    return [name for name in ("ffmpeg", "ffprobe") if not tool_path(name)]
 
 
 def regular(path, extensions, label):
@@ -72,12 +72,12 @@ def validate(job):
         raise RenderError("Choose an existing output folder")
     missing = dependencies()
     if missing:
-        raise RenderError("Install missing tools: " + ", ".join(missing) + " (./install-deps.sh)")
+        raise RenderError("Install missing tools: " + ", ".join(missing) + ". See docs/portable.md for installation.")
     return Job(audio, output, job.mode, image, job.resolution, job.style, title)
 
 
 def ffmpeg():
-    return ["ffmpeg", "-hide_banner", "-loglevel", "error", "-nostdin", "-y", "-xerror",
+    return [tool_path("ffmpeg") or "ffmpeg", "-hide_banner", "-loglevel", "error", "-nostdin", "-y", "-xerror",
             "-filter_threads", "1", "-filter_complex_threads", "1"]
 
 
@@ -89,7 +89,7 @@ def local_input(path, *, demuxer=None):
 
 
 def probe(path, cancel):
-    data = capture(["ffprobe", "-v", "error", "-protocol_whitelist", "file,pipe",
+    data = capture([tool_path("ffprobe") or "ffprobe", "-v", "error", "-protocol_whitelist", "file,pipe",
                     "-show_streams", "-show_format", "-of", "json", str(path)], cancel)
     try:
         return json.loads(data)
