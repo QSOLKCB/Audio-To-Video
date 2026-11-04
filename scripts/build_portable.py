@@ -63,9 +63,9 @@ def main():
                 break
         tcl = tkinter.Tcl()
         tcl_library = Path(tcl.eval('info library'))
-        for name, folder in (('Tcl', tcl_library), ('Tk', tcl_library.with_name('tk'+str(tkinter.TkVersion)))):
+        for runtime_name, folder in (('Tcl', tcl_library), ('Tk', tcl_library.with_name('tk'+str(tkinter.TkVersion)))):
             if (folder/'license.terms').is_file():
-                shutil.copy2(folder/'license.terms', runtime_notices/(name+'-license.terms'))
+                shutil.copy2(folder/'license.terms', runtime_notices/(runtime_name+'-license.terms'))
         command = [sys.executable, '-m', 'PyInstaller', '--noconfirm', '--clean', '--noupx',
                    '--name', 'AudioToVideo', '--distpath', str(work/'dist'),
                    '--workpath', str(work/'build'), '--specpath', str(work),
