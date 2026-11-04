@@ -47,6 +47,12 @@ with tempfile.TemporaryDirectory(prefix='a2v tk smoke ') as directory:
         assert window.output.is_file()
         assert str(window.open_button['state']) == 'normal'
         assert window.controller.elapsed_text.startswith('Elapsed ')
+        root.geometry('640x560')
+        root.update()
+        window.viewport_canvas.yview_moveto(1)
+        root.update()
+        assert window.export_button.winfo_rooty()+window.export_button.winfo_height() <= root.winfo_rooty()+root.winfo_height()
+        assert window.export_button.winfo_rootx()+window.export_button.winfo_width() <= root.winfo_rootx()+root.winfo_width()
     finally:
         root.after_cancel(window.poll_id)
         root.destroy()

@@ -24,7 +24,7 @@ cloud service, browser runtime, Node, or container is required.
 
 ![ETQ Graph Walk captured from a verified MP4 export](docs/etq-preview.png)
 
-[Quantum Galaxy and GLUBALL Knot preview](docs/visualizer-preview.png)
+[Oscilloscope previews](docs/scopes-preview.png) · [Quantum Galaxy and GLUBALL Knot preview](docs/visualizer-preview.png)
 
 ## Run on Ubuntu 24.04 or newer
 

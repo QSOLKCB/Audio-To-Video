@@ -6,7 +6,7 @@ import sys
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
-from PIL import Image, ImageOps, ImageTk
+from PIL import Image, ImageDraw, ImageOps, ImageTk
 
 from .core import AUDIO_FORMATS, IMAGE_FORMATS, Job, validate
 from .desktop import Controller, next_output
@@ -24,7 +24,7 @@ class Window:
         self.preview_key = None
         root.title('Audio to Video — QSOL-IMC')
         root.geometry('760x840')
-        root.minsize(640, 700)
+        root.minsize(640, 560)
         root.protocol('WM_DELETE_WINDOW', self.close)
         root.bind('<Control-o>', lambda _: self.choose_audio())
         root.bind('<Control-Return>', lambda _: self.start())
@@ -32,8 +32,22 @@ class Window:
         if sys.platform == 'darwin':
             root.bind('<Command-o>', lambda _: self.choose_audio())
             root.bind('<Command-Return>', lambda _: self.start())
-        body = ttk.Frame(root, padding=20)
-        body.pack(fill='both', expand=True)
+        # A scrollable form keeps all actions reachable on small laptop displays.
+        viewport = ttk.Frame(root)
+        viewport.pack(fill='both', expand=True)
+        canvas = self.viewport_canvas = tk.Canvas(viewport, highlightthickness=0)
+        scrollbar = ttk.Scrollbar(viewport, orient='vertical', command=canvas.yview)
+        canvas.configure(yscrollcommand=scrollbar.set)
+        scrollbar.pack(side='right', fill='y')
+        canvas.pack(side='left', fill='both', expand=True)
+        body = ttk.Frame(canvas, padding=20)
+        interior = canvas.create_window((0, 0), window=body, anchor='nw')
+        body.bind('<Configure>', lambda _: canvas.configure(scrollregion=canvas.bbox('all')))
+        canvas.bind('<Configure>', lambda event: canvas.itemconfigure(interior, width=event.width))
+        root.bind('<MouseWheel>', lambda event: canvas.yview_scroll(
+            -int(event.delta) if sys.platform == 'darwin' else -int(event.delta/120), 'units'))
+        root.bind('<Button-4>', lambda _: canvas.yview_scroll(-1, 'units'))
+        root.bind('<Button-5>', lambda _: canvas.yview_scroll(1, 'units'))
         body.columnconfigure(1, weight=1)
         self.controls = []
         ttk.Label(body, text='Audio in. Video out.', font=('TkDefaultFont', 22, 'bold')).grid(
@@ -48,7 +62,7 @@ class Window:
                 (3, 'Image', self.image_text, self.choose_image),
                 (9, 'Save MP4', self.output_text, self.choose_output)):
             ttk.Label(body, text=caption).grid(row=row, column=0, sticky='w', padx=(0, 12), pady=6)
-            ttk.Label(body, textvariable=variable, wraplength=430).grid(row=row, column=1, sticky='w')
+            ttk.Label(body, textvariable=variable, wraplength=320).grid(row=row, column=1, sticky='w')
             button = ttk.Button(body, text='Choose…', command=callback)
             button.grid(row=row, column=2, sticky='e')
             self.controls.append(button)
@@ -67,7 +81,8 @@ class Window:
         self.preview = ttk.Label(body, anchor='center')
         self.preview.grid(row=6, column=0, columnspan=3, sticky='nsew', pady=6)
         body.rowconfigure(6, weight=1)
-        ttk.Label(body, text='Style preview; movement follows the audio during export.').grid(
+        self.preview_note = tk.StringVar()
+        ttk.Label(body, textvariable=self.preview_note, wraplength=560).grid(
             row=7, column=0, columnspan=3, sticky='w')
         self.title = tk.StringVar()
         title_row = ttk.Frame(body)
@@ -87,7 +102,7 @@ class Window:
         self.progress = ttk.Progressbar(body, maximum=1)
         self.progress.grid(row=11, column=0, columnspan=3, sticky='ew', pady=8)
         self.status = tk.StringVar(value=self.controller.status)
-        ttk.Label(body, textvariable=self.status, wraplength=650).grid(row=12, column=0, columnspan=3, sticky='w')
+        ttk.Label(body, textvariable=self.status, wraplength=560).grid(row=12, column=0, columnspan=3, sticky='w')
         self.elapsed = tk.StringVar()
         ttk.Label(body, textvariable=self.elapsed).grid(row=13, column=0, columnspan=3, sticky='w', pady=4)
         actions = ttk.Frame(body)
@@ -125,6 +140,8 @@ class Window:
         self.output_text.set(str(self.output) if self.output else 'Choose audio first')
         self.progress['value'] = self.controller.fraction
         self.status.set(self.controller.status)
+        self.preview_note.set('Style preview; movement follows the audio during export.' if self.mode.get() == 'visualizer'
+                              else 'Image preview; the whole image fits below any title during export.')
         key = (self.mode.get(), self.style.get(), self.title.get(), self.image)
         if key != self.preview_key and not busy:
             try:
@@ -134,6 +151,9 @@ class Window:
                         canvas = Image.new('RGB', (WIDTH, HEIGHT), (12, 18, 25))
                         canvas.paste(picture, ((WIDTH-picture.width)//2, (HEIGHT-picture.height)//2))
                         picture = canvas
+                elif self.mode.get() == 'still':
+                    picture = Image.new('RGB', (WIDTH, HEIGHT), (12, 18, 25))
+                    ImageDraw.Draw(picture).text((210, 170), 'Choose a PNG or JPEG', fill=(132, 166, 180))
                 else:
                     style = next(k for k, v in STYLES.items() if v == self.style.get())
                     picture = Image.frombytes('RGB', (WIDTH, HEIGHT), render(b'', style, 60))

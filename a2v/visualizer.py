@@ -109,6 +109,18 @@ def state_legend(image, weights):
         draw.line((x, 337, x+max(2, weight*112//1000000), 337), fill=color, width=3)
 
 
+@lru_cache(maxsize=3)
+def galaxy_basis(state):
+    result = []
+    for i in range(1, 361):
+        code = mix(state*1024+i)
+        spread = 2+i//20
+        result.append((12+i*202//360, i*TURN//240,
+                       code%(2*spread+1)-spread, (code >> 9)%(2*spread+1)-spread,
+                       1+int((code >> 20)%19 == 0)))
+    return tuple(result)
+
+
 def galaxy(pcm, index):
     weights = populations(pcm)
     volume = max(peaks(pcm))
@@ -120,18 +132,13 @@ def galaxy(pcm, index):
         arm = phase + state*TURN//3
         strength = isqrt(weights[state]*1000000)
         points = []
-        for i in range(1, 361):
-            radius = 12 + i*202//360
-            angle = arm + i*TURN//240
+        light = 75 + strength*120//1000000 + volume*45//32768
+        dust = tuple(c*light//255 for c in color)
+        for radius, offset, dx, dy, size in galaxy_basis(state):
+            angle = arm + offset
             x = 320 + cosine(angle)*radius//16384
             y = 186 + sine(angle)*radius*46//(16384*100)
             points.append((x, y))
-            code = mix(state*1024 + i)
-            spread = 2 + i//20
-            dx, dy = (code % (2*spread+1))-spread, ((code >> 9) % (2*spread+1))-spread
-            light = 75 + strength*120//1000000 + volume*45//32768
-            dust = tuple(c*light//255 for c in color)
-            size = 1 + int((code >> 20) % 19 == 0)
             draw.ellipse((x+dx-size,y+dy-size,x+dx+size,y+dy+size), fill=dust)
         draw.line(points, fill=tuple(c*(100+strength*140//1000000)//255 for c in color), width=2)
         # Bright moving state packet; its size/brightness follows population.
@@ -169,11 +176,14 @@ def knot(pcm, index):
     for state, color in enumerate(PALETTE):
         colors = ribbon_colors(color)
         base_brightness = 110 + isqrt(weights[state]*1000000)*65//1000000
+        volume_radius = 44 + volume*10//32768
+        travel_phase = index*7 + state*341
         for strand in (-1, 0, 1):
             points = []
+            tube_phase = state*TURN//3 + strand*TURN//18 + index*TURN//300
             for t, cos3, sin3, cos2, sin2 in knot_basis():
-                v = state*TURN//3 + strand*TURN//18 + index*TURN//300 + t*5
-                minor = 44 + volume*10//32768 + cosine(v)*13//16384
+                v = tube_phase + t*5
+                minor = volume_radius + cosine(v)*13//16384
                 radial = 91 + minor*cos3//16384
                 x = radial*cos2//16384
                 y = radial*sin2//16384
@@ -182,7 +192,7 @@ def knot(pcm, index):
                 sx, sy, depth = 320+x*6//5, 187+(y*7//10-z)*4//5, y+z
                 points.append((sx, sy, depth))
             for i, (a,b) in enumerate(zip(points, points[1:])):
-                travel = (i*1024//512 - index*7 - state*341) % 1024
+                travel = (i*1024//512 - travel_phase) % 1024
                 brightness = base_brightness + max(0, 75-abs(travel-512))
                 if strand:
                     brightness = brightness*3//5

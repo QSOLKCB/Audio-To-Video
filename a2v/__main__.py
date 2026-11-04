@@ -1,4 +1,4 @@
-"""CLI and lazy GTK launcher; headless exports do not import GTK."""
+"""CLI and lazy desktop launchers; headless exports import no GUI toolkit."""
 import argparse
 import os
 from pathlib import Path
@@ -36,11 +36,15 @@ def main(argv=None):
             try:
                 from .tk_gui import Window
                 import tkinter as tk
+                from .title import title_image
+                title_image('Desktop check', 640)
                 root = tk.Tk()
-                root.withdraw()
-                Window(root)
-                root.update_idletasks()
-                root.destroy()
+                try:
+                    root.withdraw()
+                    Window(root)
+                    root.update_idletasks()
+                finally:
+                    root.destroy()
             except Exception as exc:
                 missing.append(f'portable desktop: {exc}')
         print("Missing: " + ", ".join(missing) if missing else "FFmpeg and FFprobe found. Run a short export to check your codecs.")

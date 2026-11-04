@@ -60,7 +60,7 @@ against an archive of the PR commit, including a real MP4 export and GUI launch.
 
 The same styles, title rendering, output checks, no-overwrite rule and cancellation
 apply to both desktops. Tk shortcuts: Ctrl+O to choose audio, Ctrl+Enter to export,
-Escape to cancel; macOS also accepts Command+O/Command+Enter. Both desktops show
+Escape to cancel; macOS also accepts Command+O/Command+Enter. The portable form scrolls on small displays. Both desktops show
 elapsed export time and suggest an unused output filename. File operations use
 local paths; network protocols remain disabled in FFmpeg.
 

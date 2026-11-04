@@ -39,24 +39,24 @@ jobs:
           $base = "$env:RUNNER_TEMP/media/ffmpeg-8.0.1-essentials_build"
           "A2V_FFMPEG_DIR=$base/bin" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
           "$base/bin" | Out-File $env:GITHUB_PATH -Encoding utf8 -Append
-          New-Item -ItemType Directory -Path notices
-          Copy-Item "$base/LICENSE" notices
-          Copy-Item "$base/README.txt" notices
-          "Archive: $url`nSHA256: $hash`nSource: https://github.com/GyanD/codexffmpeg/releases/tag/8.0.1" | Set-Content notices/BUILD.txt
+          New-Item -ItemType Directory -Path "$env:RUNNER_TEMP/a2v-notices"
+          Copy-Item "$base/LICENSE" "$env:RUNNER_TEMP/a2v-notices"
+          Copy-Item "$base/README.txt" "$env:RUNNER_TEMP/a2v-notices"
+          "Archive: $url`nSHA256: $hash`nSource: https://github.com/GyanD/codexffmpeg/releases/tag/8.0.1" | Set-Content "$env:RUNNER_TEMP/a2v-notices/BUILD.txt"
       - name: Install macOS media tools and capture provenance
         if: runner.os == 'macOS'
         shell: bash
         run: |
           brew install ffmpeg
           printf 'A2V_FFMPEG_DIR=%s/bin\n' "$(brew --prefix ffmpeg)" >> "$GITHUB_ENV"
-          python scripts/collect_brew_notices.py notices
+          python scripts/collect_brew_notices.py "$RUNNER_TEMP/a2v-notices"
       - name: Core tests on the native platform
         run: uv run --no-project --python 3.12.10 --with pillow==10.4.0 python -m unittest discover -s tests -v
       - name: Portable desktop interaction and real exports
         run: uv run --no-project --python 3.12.10 --with pillow==10.4.0 python tests/tk_smoke.py
       - name: Build self-contained executable or app
         shell: bash
-        run: uv run --no-project --python 3.12.10 --with pillow==10.4.0 --with pyinstaller==6.16.0 python scripts/build_portable.py --ffmpeg-dir "$A2V_FFMPEG_DIR" --notices notices
+        run: uv run --no-project --python 3.12.10 --with pillow==10.4.0 --with pyinstaller==6.16.0 python scripts/build_portable.py --ffmpeg-dir "$A2V_FFMPEG_DIR" --notices "$RUNNER_TEMP/a2v-notices"
       - name: Check frozen bundles without external tools on PATH
         shell: bash
         run: |

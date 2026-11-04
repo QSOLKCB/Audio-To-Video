@@ -66,3 +66,43 @@ comparison and records the effective source hash. Golden frames cover silence, a
 styles, and four frame indices including random access far into a track. The native
 checker is compared with a frozen scalar oracle at coverage/difference boundaries.
 The source-frame fixture is pinned to the tested Pillow 10.2.0 rasterizer.
+
+
+## Portable/scopes update (1.1.0)
+
+Compared with release source commit `255794c166f70b535c3a1a8f8a6609882e9b8f17`,
+this update draws bars through Pillow's native rectangle rasterizer, unrolls the
+three-band energy accumulation without changing integer rounding, caches immutable
+galaxy dust geometry, and hoists invariant galaxy colours and knot phases. The
+Windows pipe implementation uses bounded worker queues; Linux/macOS keep direct
+cancellable pipe I/O so portability does not impose per-frame thread handoffs there.
+
+[Raw timings, environment, source hashes and output hashes](portable-benchmark.json).
+Three alternating baseline/candidate pairs ran in isolated subprocesses on the
+same interpreter/Pillow/FFmpeg. Each style used a 2.017-second changing stereo
+fixture (61 frames), 720p and a title. The source-frame timing includes hashing;
+that pass also primes small geometry caches before the complete export timing.
+
+| Existing style | Source render time reduction | Complete export: baseline → candidate | Export time reduction |
+| --- | ---: | ---: | ---: |
+| Waveform bars | 43.1% | 1.842 s → 1.833 s | 0.5% |
+| Stereo oscilloscope | 0.6% | 2.847 s → 2.847 s | approximately unchanged |
+| Quantum Galaxy | 8.4% | 3.410 s → 3.040 s | 10.9% |
+| GLUBALL Knot | 10.5% | 4.926 s → 4.310 s | 12.5% |
+| ETQ Graph Walk | −4.5% | 2.762 s → 2.743 s | 0.7% |
+
+These are medians from this machine and short fixture, not universal speed claims.
+Scope and ETQ total export changes are effectively flat; ETQ's isolated raster
+measurement was slower in this sample. Faster bar rasterization does not imply an
+equivalent total export gain because encoding and verification still dominate.
+
+For **every existing style**, all six outputs had identical source-frame hashes
+and byte-identical MP4 hashes. Golden-frame, scalar bar/energy oracles, cancellation,
+codec-corruption and full-export checks remain required. No verification frames
+are skipped and no source reference is reused from an untrusted encoded result.
+
+To reproduce against an unmodified checkout of that commit:
+
+```sh
+/usr/bin/python3 scripts/benchmark_portable.py --reference /path/to/baseline --output /tmp/a2v-benchmark.json
+```

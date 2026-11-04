@@ -17,7 +17,8 @@ from a2v import __version__
 
 
 def digest(path):
-    return hashlib.file_digest(path.open('rb'), 'sha256').hexdigest()
+    with path.open('rb') as file:
+        return hashlib.file_digest(file, 'sha256').hexdigest()
 
 
 def main():
@@ -36,7 +37,7 @@ def main():
     for binary in binaries:
         if not binary.is_file():
             parser.error(f'Missing native media tool: {binary}')
-    if not args.notices.is_dir() or not any(args.notices.rglob('*')):
+    if not args.notices.is_dir() or not any(path.is_file() for path in args.notices.rglob('*')):
         parser.error('--notices must contain the redistributed media-tool licences and provenance')
     label = {'win32': 'windows', 'darwin': 'macos', 'linux': 'linux'}[sys.platform]
     name = f'Audio-To-Video-{__version__}-{label}-{platform.machine().lower()}'
@@ -47,6 +48,24 @@ def main():
         parser.error(f'Build destination exists: {target}')
     with tempfile.TemporaryDirectory(prefix='a2v-build-') as directory:
         work = Path(directory)
+        runtime_notices = work/'runtime-licences'
+        runtime_notices.mkdir()
+        for package in ('pillow', 'pyinstaller'):
+            distribution = importlib.metadata.distribution(package)
+            for relative in distribution.files or []:
+                if relative.name.lower().startswith(('license', 'copying', 'notice', 'authors')):
+                    target_notice = runtime_notices/package/Path(str(relative)).name
+                    target_notice.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(distribution.locate_file(relative), target_notice)
+        for candidate in (Path(sys.base_prefix)/'LICENSE.txt', Path(sys.base_prefix)/'lib/python3.12/LICENSE.txt'):
+            if candidate.is_file():
+                shutil.copy2(candidate, runtime_notices/'Python-LICENSE.txt')
+                break
+        tcl = tkinter.Tcl()
+        tcl_library = Path(tcl.eval('info library'))
+        for name, folder in (('Tcl', tcl_library), ('Tk', tcl_library.with_name('tk'+str(tkinter.TkVersion)))):
+            if (folder/'license.terms').is_file():
+                shutil.copy2(folder/'license.terms', runtime_notices/(name+'-license.terms'))
         command = [sys.executable, '-m', 'PyInstaller', '--noconfirm', '--clean', '--noupx',
                    '--name', 'AudioToVideo', '--distpath', str(work/'dist'),
                    '--workpath', str(work/'build'), '--specpath', str(work),
@@ -54,7 +73,8 @@ def main():
                    '--add-data', f'{ROOT / "a2v/assets"}:a2v/assets',
                    '--add-data', f'{ROOT / "LICENSES"}:LICENSES',
                    '--add-data', f'{args.notices.resolve()}:THIRD_PARTY',
-                   '--add-data', f'{ROOT / "LICENSE"}:.']
+                   '--add-data', f'{ROOT / "LICENSE"}:.',
+                   '--add-data', f'{runtime_notices}:RUNTIME_LICENSES']
         for binary in binaries:
             command += ['--add-binary', f'{binary}:media']
         if sys.platform == 'win32':
@@ -72,6 +92,7 @@ def main():
             shutil.copytree(work/'dist/AudioToVideo.app', target/'AudioToVideo.app', symlinks=True)
         else:
             shutil.copytree(work/'dist/AudioToVideo', target/'AudioToVideo', symlinks=True)
+        shutil.copytree(runtime_notices, target/'RUNTIME_LICENSES')
         shutil.copytree(ROOT/'LICENSES', target/'LICENSES')
         shutil.copytree(args.notices, target/'THIRD_PARTY')
         shutil.copy2(ROOT/'LICENSE', target)

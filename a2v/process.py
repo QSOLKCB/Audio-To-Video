@@ -2,9 +2,14 @@
 from contextlib import contextmanager
 import os
 import queue
+import select
 import subprocess
 import tempfile
 import threading
+
+
+# Windows select() supports sockets only. POSIX keeps the direct pipe fast path.
+THREADED_PIPES = os.name == "nt"
 
 
 class RenderError(Exception):
@@ -78,7 +83,10 @@ class PipeWriter:
     def pump(self):
         while not self.stop.is_set():
             try:
-                frame, done, errors = self.frames.get(timeout=.05)
+                request = self.frames.get(timeout=.05)
+                if request is None:
+                    return
+                frame, done, errors = request
             except queue.Empty:
                 continue
             try:
@@ -118,12 +126,14 @@ def child(args, cancel, *, input_pipe=False, output_pipe=False):
         stop = threading.Event()
         pipes = []
         try:
-            if output_pipe:
+            if output_pipe and THREADED_PIPES:
                 proc.a2v_reader = PipeReader(proc.stdout, stop)
                 pipes.append(proc.a2v_reader)
-            if input_pipe:
+            if input_pipe and THREADED_PIPES:
                 proc.a2v_writer = PipeWriter(proc.stdin, stop)
                 pipes.append(proc.a2v_writer)
+            elif input_pipe:
+                os.set_blocking(proc.stdin.fileno(), False)
             yield proc
             while proc.poll() is None:
                 checkpoint(cancel)
@@ -136,6 +146,12 @@ def child(args, cancel, *, input_pipe=False, output_pipe=False):
                 raise RenderError(detail or f"{args[0]} exited with status {proc.returncode}")
         finally:
             stop.set()
+            for pipe in pipes:
+                if isinstance(pipe, PipeWriter):
+                    try:
+                        pipe.frames.put_nowait(None)
+                    except queue.Full:
+                        pass
             if proc.poll() is None:
                 proc.terminate()
                 try:
@@ -154,14 +170,40 @@ def child(args, cancel, *, input_pipe=False, output_pipe=False):
 
 def read_exact(proc, size, cancel):
     """Read at most one bounded frame, remaining cancellable if a child stalls."""
-    return proc.a2v_reader.read(size, cancel)
+    if hasattr(proc, 'a2v_reader'):
+        return proc.a2v_reader.read(size, cancel)
+    data = bytearray()
+    while len(data) < size:
+        checkpoint(cancel)
+        if not select.select([proc.stdout], [], [], .1)[0]:
+            continue
+        chunk = os.read(proc.stdout.fileno(), min(size-len(data), 65536))
+        if not chunk:
+            break
+        data.extend(chunk)
+    return bytes(data)
 
 
 def write_frame(proc, frame, cancel):
     if proc.poll() is not None:
         checkpoint(cancel)
         raise RenderError('FFmpeg stopped while receiving video frames')
-    proc.a2v_writer.write(frame, cancel)
+    if hasattr(proc, 'a2v_writer'):
+        proc.a2v_writer.write(frame, cancel)
+        return
+    view = memoryview(frame)
+    while view:
+        checkpoint(cancel)
+        if proc.poll() is not None:
+            raise RenderError('FFmpeg stopped while receiving video frames')
+        if select.select([], [proc.stdin], [], .1)[1]:
+            try:
+                count = os.write(proc.stdin.fileno(), view)
+            except BlockingIOError:
+                continue
+            except BrokenPipeError as exc:
+                raise RenderError('FFmpeg closed the video input unexpectedly') from exc
+            view = view[count:]
 
 
 def run(args, cancel):

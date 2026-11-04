@@ -57,6 +57,14 @@ class ScopeTests(unittest.TestCase):
                     self.assertEqual(v.render(pcm, 'bars'), scalar_bars(pcm))
                     self.assertEqual(v.populations(pcm), scalar_populations(pcm))
 
+    def test_galaxy_cache_is_bounded_and_immutable(self):
+        v.galaxy_basis.cache_clear()
+        for state in range(3):
+            self.assertIsInstance(v.galaxy_basis(state), tuple)
+            self.assertIsInstance(v.galaxy_basis(state)[0], tuple)
+        self.assertEqual(v.galaxy_basis.cache_info().currsize, 3)
+        self.assertEqual(v.galaxy_basis.cache_info().maxsize, 3)
+
     def test_trigger_preserves_shared_channel_offset_and_bounds(self):
         data = array('h', [-100, -200]*1600)
         data[37*2+1] = 200
@@ -100,6 +108,12 @@ class ScopeTests(unittest.TestCase):
 
 
 class PortablePipeTests(unittest.TestCase):
+    def setUp(self):
+        # Exercise the actual Windows strategy even on a POSIX development host.
+        threaded = patch('a2v.process.THREADED_PIPES', True)
+        threaded.start()
+        self.addCleanup(threaded.stop)
+
     def test_fragmented_reads_sticky_eof_and_backpressure(self):
         import sys
         cancel = threading.Event()

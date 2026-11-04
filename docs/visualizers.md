@@ -73,6 +73,8 @@ builds. Byte identity across platforms or library versions is not promised.
 
 ## Oscilloscope additions (1.1)
 
+![Stereo, triggered, vector and radial oscilloscope previews](scopes-preview.png)
+
 | Style / CLI name | What it displays |
 | --- | --- |
 | Triggered oscilloscope / `trigger-scope` | Two channel traces on a graticule, aligned to the stronger channel's first rising zero crossing. Both traces share the trigger, preserving stereo phase. The visible sweep spans 800 samples (16.7 ms). |
